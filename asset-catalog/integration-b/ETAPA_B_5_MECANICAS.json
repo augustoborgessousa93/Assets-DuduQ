@@ -1,0 +1,165 @@
+{
+  "id": "duduq-smart-assets-etapa-b-smoke",
+  "version": "1.0.0",
+  "activities": [
+    {
+      "id": "b-target",
+      "mechanic": "target-shooter",
+      "questions": [
+        {
+          "id": "B-TS-01",
+          "metadata": {
+            "targetShooter": {
+              "items": [
+                {
+                  "id": "dog-target",
+                  "label": "",
+                  "display": "image",
+                  "imageAsset": "dog",
+                  "imageCategory": "animals"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "b-matching",
+      "mechanic": "matching",
+      "questions": [
+        {
+          "id": "B-MA-01",
+          "metadata": {
+            "matching": {
+              "mode": "image-image",
+              "assetSources": {
+                "dogScene": {
+                  "imageAsset": "dog",
+                  "imageCategory": "animals"
+                },
+                "catScene": {
+                  "imageAsset": "cat",
+                  "imageCategory": "animals"
+                }
+              },
+              "assets": {},
+              "leftItems": [
+                {
+                  "id": "left-dog",
+                  "imageAssetKey": "dogScene",
+                  "alt": "Dog"
+                }
+              ],
+              "rightItems": [
+                {
+                  "id": "right-cat",
+                  "imageAssetKey": "catScene",
+                  "alt": "Cat"
+                }
+              ],
+              "pairs": [
+                {
+                  "leftId": "left-dog",
+                  "rightId": "right-cat"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "b-drag-drop",
+      "mechanic": "drag-drop",
+      "questions": [
+        {
+          "id": "B-DD-01",
+          "alternatives": [
+            {
+              "id": "eraser-card",
+              "label": "Eraser",
+              "imageAsset": "eraser",
+              "imageCategory": "school"
+            }
+          ],
+          "metadata": {
+            "dragDrop": {
+              "targets": [
+                {
+                  "id": "school-zone",
+                  "label": "School object",
+                  "imageAsset": "eraser",
+                  "imageCategory": "school",
+                  "image": {
+                    "alt": "Eraser"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "b-smart-sentence",
+      "mechanic": "smart-sentence",
+      "questions": [
+        {
+          "id": "B-SS-01",
+          "metadata": {
+            "smartSentence": {
+              "mode": "complete-sentence",
+              "imageAsset": "boy",
+              "imageCategory": "people",
+              "imageAlt": "Boy",
+              "sentence": "I'm a ____.",
+              "words": [
+                "boy",
+                "girl"
+              ],
+              "answer": [
+                "boy"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "b-bubble-pop",
+      "mechanic": "bubble-pop",
+      "questions": [
+        {
+          "id": "B-BP-01",
+          "alternatives": [
+            {
+              "id": "a",
+              "text": "A",
+              "imageAsset": "letter a",
+              "imageCategory": "letters",
+              "image": {
+                "alt": "Letter A"
+              },
+              "metadata": {}
+            },
+            {
+              "id": "b",
+              "text": "B",
+              "imageAsset": "letter b",
+              "imageCategory": "letters",
+              "image": {
+                "alt": "Letter B"
+              },
+              "metadata": {}
+            }
+          ],
+          "answer": {
+            "type": "single",
+            "value": "a"
+          }
+        }
+      ]
+    }
+  ]
+}

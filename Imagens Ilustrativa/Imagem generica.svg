@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Imagem genérica DuduQ</title>
+  <desc id="desc">Placeholder neutro usado quando uma imagem da biblioteca não é encontrada.</desc>
+  <rect width="800" height="600" rx="40" fill="#F4F6F8"/>
+  <rect x="135" y="110" width="530" height="330" rx="28" fill="#FFFFFF" stroke="#AEB8C2" stroke-width="12"/>
+  <circle cx="290" cy="230" r="55" fill="#D5DCE3"/>
+  <path d="M180 390 L315 285 L405 355 L485 295 L620 390 Z" fill="#D5DCE3"/>
+  <text x="400" y="505" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#56616B">IMAGEM EM BREVE</text>
+  <text x="400" y="548" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#7A8793">DuduQ Smart Assets</text>
+</svg>

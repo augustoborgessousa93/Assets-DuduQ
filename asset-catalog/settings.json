@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "repository": "augustoborgessousa93/Assets-DuduQ",
+  "branch": "main",
+  "imagesFolder": "Imagens Ilustrativa",
+  "rawBase": "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/",
+  "localBase": "/assets-duduq-local-v1/",
+  "allowedExtensions": [
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".svg"
+  ],
+  "semanticFields": [
+    "imageAsset",
+    "imageKey",
+    "imageAssetKey"
+  ],
+  "outputField": "imageUrl",
+  "categoryField": "imageCategory",
+  "resolutionMetadataField": "_assetResolution",
+  "writeResolutionMetadata": true,
+  "fuzzy": {
+    "enabled": true,
+    "threshold": 0.92,
+    "minimumMargin": 0.08,
+    "minimumQueryLength": 4
+  }
+}

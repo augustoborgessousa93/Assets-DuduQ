@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "policy": "r124-legacy-key-bridge",
+  "notes": [
+    "Bubble Pop R124 consumes metadata.imageAssetKey.",
+    "The bridge only emits keys explicitly approved here.",
+    "Unknown semantic assets are blocked instead of guessed."
+  ],
+  "map": {
+    "a": "letterA",
+    "letter a": "letterA",
+    "letra a": "letterA",
+    "b": "letterB",
+    "letter b": "letterB",
+    "letra b": "letterB",
+    "c": "letterC",
+    "letter c": "letterC",
+    "letra c": "letterC",
+    "d": "letterD",
+    "letter d": "letterD",
+    "letra d": "letterD",
+    "e": "letterE",
+    "letter e": "letterE",
+    "letra e": "letterE",
+    "m": "letterM",
+    "letter m": "letterM",
+    "letra m": "letterM",
+    "s": "letterS",
+    "letter s": "letterS",
+    "letra s": "letterS"
+  }
+}

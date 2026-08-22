@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DuduQ Smart Assets</title>
+<style>
+  :root { font-family: Inter, Arial, sans-serif; color-scheme: light; }
+  body { margin: 0; background: #f5f7fa; color: #1d2733; }
+  main { max-width: 1040px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1 { margin-bottom: 6px; }
+  .muted { color:#66727f; }
+  .bar { display:grid; grid-template-columns: 1fr auto; gap:10px; margin:24px 0; }
+  input { padding:14px 16px; border:1px solid #bbc5cf; border-radius:12px; font-size:18px; }
+  button { padding:0 22px; border:0; border-radius:12px; background:#162b44; color:#fff; font-weight:700; }
+  .result { display:grid; grid-template-columns:minmax(260px,420px) 1fr; gap:24px; background:#fff; border-radius:18px; padding:18px; box-shadow:0 8px 30px rgba(20,40,65,.08); }
+  .preview { min-height:320px; display:flex; align-items:center; justify-content:center; background:#eef2f5; border-radius:14px; overflow:hidden; }
+  .preview img { max-width:100%; max-height:420px; object-fit:contain; }
+  dl { margin:0; }
+  dt { color:#6a7681; font-size:13px; margin-top:13px; }
+  dd { margin:3px 0 0; overflow-wrap:anywhere; }
+  .ok { color:#08783e; font-weight:800; }
+  .warn { color:#a05a00; font-weight:800; }
+  .stats { margin-top:18px; font-size:14px; color:#586572; }
+  @media(max-width:720px){ .result{grid-template-columns:1fr}.bar{grid-template-columns:1fr}.bar button{height:48px} }
+</style>
+</head>
+<body>
+<main>
+  <h1>DuduQ Smart Assets</h1>
+  <div class="muted">Digite uma chave como <b>dog</b>, <b>cachorro</b>, <b>eraser</b> ou o nome de um arquivo.</div>
+
+  <div class="bar">
+    <input id="q" autocomplete="off" placeholder="Ex.: dog">
+    <button id="go">Resolver</button>
+  </div>
+
+  <section class="result">
+    <div class="preview"><img id="img" alt=""></div>
+    <div>
+      <div id="status" class="muted">Carregando catálogo...</div>
+      <dl>
+        <dt>Solicitado</dt><dd id="requested">—</dd>
+        <dt>Estratégia</dt><dd id="strategy">—</dd>
+        <dt>Confiança</dt><dd id="confidence">—</dd>
+        <dt>Arquivo</dt><dd id="file">—</dd>
+        <dt>URL raw</dt><dd id="url">—</dd>
+      </dl>
+    </div>
+  </section>
+  <div id="stats" class="stats"></div>
+</main>
+<script>
+let catalog;
+
+function normalize(value) {
+  return String(value || "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\.[^.]+$/, "")
+    .toLowerCase()
+    .replace(/&/g, " e ")
+    .replace(/[_-]+/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function lev(a,b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({length:b.length+1},(_,i)=>i);
+  let cur = new Array(b.length+1);
+  for (let i=1;i<=a.length;i++) {
+    cur[0]=i;
+    for (let j=1;j<=b.length;j++) {
+      const c=a[i-1]===b[j-1]?0:1;
+      cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+c);
+    }
+    [prev,cur]=[cur,prev];
+  }
+  return prev[b.length];
+}
+
+function similarity(a,b) {
+  const m=Math.max(a.length,b.length);
+  return m ? 1 - lev(a,b)/m : 1;
+}
+
+function assetById(id) { return id ? catalog.assets[id] : null; }
+
+function resolve(requested) {
+  const q=normalize(requested);
+  let id=null, strategy="", confidence=0, status="resolved";
+
+  if (catalog.aliases[q]) {
+    id=catalog.aliases[q]; strategy="alias"; confidence=1;
+  } else if (catalog.byKey[q]) {
+    id=catalog.byKey[q]; strategy="exact"; confidence=1;
+  } else if (catalog.fuzzy.enabled && q.length >= catalog.fuzzy.minimumQueryLength) {
+    let best=["",-1], second=-1;
+    for (const key of Object.keys(catalog.byKey)) {
+      const s=similarity(q,key);
+      if (s>best[1]) { second=best[1]; best=[key,s]; }
+      else if (s>second) second=s;
+    }
+    if (best[1] >= catalog.fuzzy.threshold && best[1]-second >= catalog.fuzzy.minimumMargin) {
+      id=catalog.byKey[best[0]]; strategy="fuzzy"; confidence=best[1];
+    }
+  }
+
+  if (!id) {
+    id=catalog.fallbacks["*"] || null;
+    strategy=id ? "fallback-global" : "missing";
+    status=id ? "fallback" : "missing";
+  }
+
+  return {requested,q,id,strategy,confidence,status,asset:assetById(id)};
+}
+
+function localPreviewUrl(asset) {
+  if (!asset) return "";
+  return "/" + asset.path.split("/").map(encodeURIComponent).join("/");
+}
+
+function render() {
+  const query=document.querySelector("#q").value.trim();
+  if (!query || !catalog) return;
+  const r=resolve(query);
+  document.querySelector("#requested").textContent=query;
+  document.querySelector("#strategy").textContent=r.strategy;
+  document.querySelector("#confidence").textContent=r.confidence.toFixed(3);
+  document.querySelector("#file").textContent=r.asset?.file || "—";
+  document.querySelector("#url").textContent=r.asset?.rawUrl || "—";
+  const status=document.querySelector("#status");
+  status.textContent = r.status === "resolved" ? "RESOLVIDO" : r.status === "fallback" ? "FALLBACK" : "NÃO ENCONTRADO";
+  status.className = r.status === "resolved" ? "ok" : "warn";
+  const img=document.querySelector("#img");
+  img.src=localPreviewUrl(r.asset);
+  img.alt=r.asset?.stem || "Imagem genérica";
+}
+
+fetch("../assets-index.json",{cache:"no-store"})
+  .then(r=>{ if(!r.ok) throw new Error("Catálogo HTTP "+r.status); return r.json(); })
+  .then(data=>{
+    catalog=data;
+    document.querySelector("#status").textContent="Catálogo carregado";
+    document.querySelector("#stats").textContent=
+      `${data.stats.images} imagens · ${data.stats.aliases} aliases · ${data.stats.collisions} colisões · ${data.stats.warnings} avisos`;
+    document.querySelector("#q").value="dog";
+    render();
+  })
+  .catch(err=>{
+    document.querySelector("#status").textContent="Erro: "+err.message;
+    document.querySelector("#status").className="warn";
+  });
+
+document.querySelector("#go").addEventListener("click",render);
+document.querySelector("#q").addEventListener("keydown",e=>{ if(e.key==="Enter") render(); });
+</script>
+</body>
+</html>

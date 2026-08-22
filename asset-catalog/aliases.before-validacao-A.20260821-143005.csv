@@ -1,0 +1,14 @@
+alias,target,category,notes
+dog,Cachorro.png,animals,English alias
+puppy,Cachorro.png,animals,English alias
+eraser,Borracha.png,school,English alias
+rubber,Borracha.png,school,English alias
+blue pen,Caneta azul.png,school,English alias
+horse,Cavalo.png,animals,English alias
+boy,Boy.png,people,English/Portuguese normalization reference
+girl,Girl.png,people,English/Portuguese normalization reference
+hello,Hello.png,greetings,Canonical English key
+goodbye,Bye.png,greetings,English alias
+good morning,Good Morning.png,greetings,Canonical English key
+good afternoon,Good Afternoon.png,greetings,Canonical English key
+good night,Good Night.png,greetings,Canonical English key

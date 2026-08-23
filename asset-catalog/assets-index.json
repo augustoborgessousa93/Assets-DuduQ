@@ -1,6 +1,6 @@
 {
     "schemaVersion":  1,
-    "generatedAt":  "2026-08-21T14:30:06.1182891-03:00",
+    "generatedAt":  "2026-08-22T16:45:43.9532549-03:00",
     "repository":  "augustoborgessousa93/Assets-DuduQ",
     "branch":  "main",
     "imagesFolder":  "Imagens Ilustrativa",
@@ -22,8 +22,8 @@
                   "minimumQueryLength":  4
               },
     "stats":  {
-                  "images":  79,
-                  "uniqueKeys":  79,
+                  "images":  97,
+                  "uniqueKeys":  97,
                   "aliases":  77,
                   "fallbacks":  1,
                   "collisions":  0,
@@ -173,6 +173,17 @@
                                                           "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cavalo.png",
                                                           "sizeBytes":  1193835
                                                       },
+                   "Imagens Ilustrativa/CINCO.png":  {
+                                                         "id":  "Imagens Ilustrativa/CINCO.png",
+                                                         "file":  "CINCO.png",
+                                                         "stem":  "CINCO",
+                                                         "key":  "cinco",
+                                                         "category":  "",
+                                                         "path":  "Imagens Ilustrativa/CINCO.png",
+                                                         "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/CINCO.png",
+                                                         "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/CINCO.png",
+                                                         "sizeBytes":  1350163
+                                                     },
                    "Imagens Ilustrativa/Coelho.png":  {
                                                           "id":  "Imagens Ilustrativa/Coelho.png",
                                                           "file":  "Coelho.png",
@@ -184,6 +195,105 @@
                                                           "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Coelho.png",
                                                           "sizeBytes":  979429
                                                       },
+                   "Imagens Ilustrativa/Cor_Amarelo.png":  {
+                                                               "id":  "Imagens Ilustrativa/Cor_Amarelo.png",
+                                                               "file":  "Cor_Amarelo.png",
+                                                               "stem":  "Cor_Amarelo",
+                                                               "key":  "cor amarelo",
+                                                               "category":  "",
+                                                               "path":  "Imagens Ilustrativa/Cor_Amarelo.png",
+                                                               "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Amarelo.png",
+                                                               "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Amarelo.png",
+                                                               "sizeBytes":  884087
+                                                           },
+                   "Imagens Ilustrativa/Cor_Azul.png":  {
+                                                            "id":  "Imagens Ilustrativa/Cor_Azul.png",
+                                                            "file":  "Cor_Azul.png",
+                                                            "stem":  "Cor_Azul",
+                                                            "key":  "cor azul",
+                                                            "category":  "",
+                                                            "path":  "Imagens Ilustrativa/Cor_Azul.png",
+                                                            "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Azul.png",
+                                                            "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Azul.png",
+                                                            "sizeBytes":  1097211
+                                                        },
+                   "Imagens Ilustrativa/Cor_Branca.png":  {
+                                                              "id":  "Imagens Ilustrativa/Cor_Branca.png",
+                                                              "file":  "Cor_Branca.png",
+                                                              "stem":  "Cor_Branca",
+                                                              "key":  "cor branca",
+                                                              "category":  "",
+                                                              "path":  "Imagens Ilustrativa/Cor_Branca.png",
+                                                              "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Branca.png",
+                                                              "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Branca.png",
+                                                              "sizeBytes":  819113
+                                                          },
+                   "Imagens Ilustrativa/Cor_Laranja.png":  {
+                                                               "id":  "Imagens Ilustrativa/Cor_Laranja.png",
+                                                               "file":  "Cor_Laranja.png",
+                                                               "stem":  "Cor_Laranja",
+                                                               "key":  "cor laranja",
+                                                               "category":  "",
+                                                               "path":  "Imagens Ilustrativa/Cor_Laranja.png",
+                                                               "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Laranja.png",
+                                                               "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Laranja.png",
+                                                               "sizeBytes":  1054385
+                                                           },
+                   "Imagens Ilustrativa/Cor_Marrom.png":  {
+                                                              "id":  "Imagens Ilustrativa/Cor_Marrom.png",
+                                                              "file":  "Cor_Marrom.png",
+                                                              "stem":  "Cor_Marrom",
+                                                              "key":  "cor marrom",
+                                                              "category":  "",
+                                                              "path":  "Imagens Ilustrativa/Cor_Marrom.png",
+                                                              "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Marrom.png",
+                                                              "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Marrom.png",
+                                                              "sizeBytes":  1110027
+                                                          },
+                   "Imagens Ilustrativa/Cor_Preto.png":  {
+                                                             "id":  "Imagens Ilustrativa/Cor_Preto.png",
+                                                             "file":  "Cor_Preto.png",
+                                                             "stem":  "Cor_Preto",
+                                                             "key":  "cor preto",
+                                                             "category":  "",
+                                                             "path":  "Imagens Ilustrativa/Cor_Preto.png",
+                                                             "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Preto.png",
+                                                             "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Preto.png",
+                                                             "sizeBytes":  885925
+                                                         },
+                   "Imagens Ilustrativa/Cor_Rosa.png":  {
+                                                            "id":  "Imagens Ilustrativa/Cor_Rosa.png",
+                                                            "file":  "Cor_Rosa.png",
+                                                            "stem":  "Cor_Rosa",
+                                                            "key":  "cor rosa",
+                                                            "category":  "",
+                                                            "path":  "Imagens Ilustrativa/Cor_Rosa.png",
+                                                            "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Rosa.png",
+                                                            "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Rosa.png",
+                                                            "sizeBytes":  989398
+                                                        },
+                   "Imagens Ilustrativa/Cor_Verde.png":  {
+                                                             "id":  "Imagens Ilustrativa/Cor_Verde.png",
+                                                             "file":  "Cor_Verde.png",
+                                                             "stem":  "Cor_Verde",
+                                                             "key":  "cor verde",
+                                                             "category":  "",
+                                                             "path":  "Imagens Ilustrativa/Cor_Verde.png",
+                                                             "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Verde.png",
+                                                             "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Verde.png",
+                                                             "sizeBytes":  1050617
+                                                         },
+                   "Imagens Ilustrativa/Cor_Vermelho.png":  {
+                                                                "id":  "Imagens Ilustrativa/Cor_Vermelho.png",
+                                                                "file":  "Cor_Vermelho.png",
+                                                                "stem":  "Cor_Vermelho",
+                                                                "key":  "cor vermelho",
+                                                                "category":  "",
+                                                                "path":  "Imagens Ilustrativa/Cor_Vermelho.png",
+                                                                "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/Cor_Vermelho.png",
+                                                                "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Cor_Vermelho.png",
+                                                                "sizeBytes":  949380
+                                                            },
                    "Imagens Ilustrativa/descansando.png":  {
                                                                "id":  "Imagens Ilustrativa/descansando.png",
                                                                "file":  "descansando.png",
@@ -217,6 +327,28 @@
                                                               "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/desenhando.png",
                                                               "sizeBytes":  1744482
                                                           },
+                   "Imagens Ilustrativa/DEZ.png":  {
+                                                       "id":  "Imagens Ilustrativa/DEZ.png",
+                                                       "file":  "DEZ.png",
+                                                       "stem":  "DEZ",
+                                                       "key":  "dez",
+                                                       "category":  "",
+                                                       "path":  "Imagens Ilustrativa/DEZ.png",
+                                                       "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/DEZ.png",
+                                                       "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/DEZ.png",
+                                                       "sizeBytes":  1378725
+                                                   },
+                   "Imagens Ilustrativa/DOIS.png":  {
+                                                        "id":  "Imagens Ilustrativa/DOIS.png",
+                                                        "file":  "DOIS.png",
+                                                        "stem":  "DOIS",
+                                                        "key":  "dois",
+                                                        "category":  "",
+                                                        "path":  "Imagens Ilustrativa/DOIS.png",
+                                                        "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/DOIS.png",
+                                                        "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/DOIS.png",
+                                                        "sizeBytes":  1355563
+                                                    },
                    "Imagens Ilustrativa/DUDUQ_ACERTO.png":  {
                                                                 "id":  "Imagens Ilustrativa/DUDUQ_ACERTO.png",
                                                                 "file":  "DUDUQ_ACERTO.png",
@@ -591,17 +723,6 @@
                                                                             "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/LOGO%20DA%20EMPRESA_COLORIDO.png",
                                                                             "sizeBytes":  4748246
                                                                         },
-                   "Imagens Ilustrativa/LOGO DUDUQ.png":  {
-                                                              "id":  "Imagens Ilustrativa/LOGO DUDUQ.png",
-                                                              "file":  "LOGO DUDUQ.png",
-                                                              "stem":  "LOGO DUDUQ",
-                                                              "key":  "logo duduq",
-                                                              "category":  "",
-                                                              "path":  "Imagens Ilustrativa/LOGO DUDUQ.png",
-                                                              "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/LOGO%20DUDUQ.png",
-                                                              "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/LOGO%20DUDUQ.png",
-                                                              "sizeBytes":  4593312
-                                                          },
                    "Imagens Ilustrativa/Logo EduQ Play.png":  {
                                                                   "id":  "Imagens Ilustrativa/Logo EduQ Play.png",
                                                                   "file":  "Logo EduQ Play.png",
@@ -668,6 +789,28 @@
                                                            "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/nervous.png",
                                                            "sizeBytes":  2006876
                                                        },
+                   "Imagens Ilustrativa/NOVE.png":  {
+                                                        "id":  "Imagens Ilustrativa/NOVE.png",
+                                                        "file":  "NOVE.png",
+                                                        "stem":  "NOVE",
+                                                        "key":  "nove",
+                                                        "category":  "",
+                                                        "path":  "Imagens Ilustrativa/NOVE.png",
+                                                        "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/NOVE.png",
+                                                        "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/NOVE.png",
+                                                        "sizeBytes":  1374991
+                                                    },
+                   "Imagens Ilustrativa/OITO.png":  {
+                                                        "id":  "Imagens Ilustrativa/OITO.png",
+                                                        "file":  "OITO.png",
+                                                        "stem":  "OITO",
+                                                        "key":  "oito",
+                                                        "category":  "",
+                                                        "path":  "Imagens Ilustrativa/OITO.png",
+                                                        "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/OITO.png",
+                                                        "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/OITO.png",
+                                                        "sizeBytes":  1376576
+                                                    },
                    "Imagens Ilustrativa/Ovelha.png":  {
                                                           "id":  "Imagens Ilustrativa/Ovelha.png",
                                                           "file":  "Ovelha.png",
@@ -723,6 +866,17 @@
                                                          "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Porco.png",
                                                          "sizeBytes":  1318377
                                                      },
+                   "Imagens Ilustrativa/QUATRO.png":  {
+                                                          "id":  "Imagens Ilustrativa/QUATRO.png",
+                                                          "file":  "QUATRO.png",
+                                                          "stem":  "QUATRO",
+                                                          "key":  "quatro",
+                                                          "category":  "",
+                                                          "path":  "Imagens Ilustrativa/QUATRO.png",
+                                                          "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/QUATRO.png",
+                                                          "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/QUATRO.png",
+                                                          "sizeBytes":  1319882
+                                                      },
                    "Imagens Ilustrativa/Rain.png":  {
                                                         "id":  "Imagens Ilustrativa/Rain.png",
                                                         "file":  "Rain.png",
@@ -756,6 +910,17 @@
                                                                                             "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Rel%C3%B3gio%20marcando%207-30_%20ida%20para%20a%20escola.png",
                                                                                             "sizeBytes":  2143905
                                                                                         },
+                   "Imagens Ilustrativa/SEIS.png":  {
+                                                        "id":  "Imagens Ilustrativa/SEIS.png",
+                                                        "file":  "SEIS.png",
+                                                        "stem":  "SEIS",
+                                                        "key":  "seis",
+                                                        "category":  "",
+                                                        "path":  "Imagens Ilustrativa/SEIS.png",
+                                                        "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/SEIS.png",
+                                                        "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/SEIS.png",
+                                                        "sizeBytes":  1390371
+                                                    },
                    "Imagens Ilustrativa/Sentada.png":  {
                                                            "id":  "Imagens Ilustrativa/Sentada.png",
                                                            "file":  "Sentada.png",
@@ -767,6 +932,17 @@
                                                            "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Sentada.png",
                                                            "sizeBytes":  1648751
                                                        },
+                   "Imagens Ilustrativa/SETE.png":  {
+                                                        "id":  "Imagens Ilustrativa/SETE.png",
+                                                        "file":  "SETE.png",
+                                                        "stem":  "SETE",
+                                                        "key":  "sete",
+                                                        "category":  "",
+                                                        "path":  "Imagens Ilustrativa/SETE.png",
+                                                        "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/SETE.png",
+                                                        "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/SETE.png",
+                                                        "sizeBytes":  1293519
+                                                    },
                    "Imagens Ilustrativa/Silêncio.png":  {
                                                             "id":  "Imagens Ilustrativa/Silêncio.png",
                                                             "file":  "Silêncio.png",
@@ -855,6 +1031,17 @@
                                                                   "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/Tocando%20os%20p%C3%A9s.png",
                                                                   "sizeBytes":  1132732
                                                               },
+                   "Imagens Ilustrativa/TRÊS.png":  {
+                                                        "id":  "Imagens Ilustrativa/TRÊS.png",
+                                                        "file":  "TRÊS.png",
+                                                        "stem":  "TRÊS",
+                                                        "key":  "tres",
+                                                        "category":  "",
+                                                        "path":  "Imagens Ilustrativa/TRÊS.png",
+                                                        "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/TR%C3%8AS.png",
+                                                        "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/TR%C3%8AS.png",
+                                                        "sizeBytes":  1382558
+                                                    },
                    "Imagens Ilustrativa/TV sobre a mesa.png":  {
                                                                    "id":  "Imagens Ilustrativa/TV sobre a mesa.png",
                                                                    "file":  "TV sobre a mesa.png",
@@ -866,6 +1053,17 @@
                                                                    "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/TV%20sobre%20a%20mesa.png",
                                                                    "sizeBytes":  1007790
                                                                },
+                   "Imagens Ilustrativa/UM.png":  {
+                                                      "id":  "Imagens Ilustrativa/UM.png",
+                                                      "file":  "UM.png",
+                                                      "stem":  "UM",
+                                                      "key":  "um",
+                                                      "category":  "",
+                                                      "path":  "Imagens Ilustrativa/UM.png",
+                                                      "rawUrl":  "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/UM.png",
+                                                      "localUrl":  "/assets-duduq-local-v1/Imagens%20Ilustrativa/UM.png",
+                                                      "sizeBytes":  1289089
+                                                  },
                    "Imagens Ilustrativa/Vaca.png":  {
                                                         "id":  "Imagens Ilustrativa/Vaca.png",
                                                         "file":  "Vaca.png",
@@ -914,10 +1112,22 @@
                   "caminhao preto atras do onibus":  "Imagens Ilustrativa/Caminhão preto atrás do ônibus.png",
                   "caneta azul":  "Imagens Ilustrativa/Caneta azul.png",
                   "cavalo":  "Imagens Ilustrativa/Cavalo.png",
+                  "cinco":  "Imagens Ilustrativa/CINCO.png",
                   "coelho":  "Imagens Ilustrativa/Coelho.png",
+                  "cor amarelo":  "Imagens Ilustrativa/Cor_Amarelo.png",
+                  "cor azul":  "Imagens Ilustrativa/Cor_Azul.png",
+                  "cor branca":  "Imagens Ilustrativa/Cor_Branca.png",
+                  "cor laranja":  "Imagens Ilustrativa/Cor_Laranja.png",
+                  "cor marrom":  "Imagens Ilustrativa/Cor_Marrom.png",
+                  "cor preto":  "Imagens Ilustrativa/Cor_Preto.png",
+                  "cor rosa":  "Imagens Ilustrativa/Cor_Rosa.png",
+                  "cor verde":  "Imagens Ilustrativa/Cor_Verde.png",
+                  "cor vermelho":  "Imagens Ilustrativa/Cor_Vermelho.png",
                   "descansando":  "Imagens Ilustrativa/descansando.png",
                   "desenhando":  "Imagens Ilustrativa/desenhando.png",
                   "desenhando no parque":  "Imagens Ilustrativa/desenhando no parque.png",
+                  "dez":  "Imagens Ilustrativa/DEZ.png",
+                  "dois":  "Imagens Ilustrativa/DOIS.png",
                   "duduq acerto":  "Imagens Ilustrativa/DUDUQ_ACERTO.png",
                   "duduq erro":  "Imagens Ilustrativa/DUDUQ_ERRO.png",
                   "duduq idle":  "Imagens Ilustrativa/DUDUQ_IDLE.png",
@@ -952,22 +1162,26 @@
                   "letra m":  "Imagens Ilustrativa/Letra M.png",
                   "letra s":  "Imagens Ilustrativa/Letra S.png",
                   "logo da empresa colorido":  "Imagens Ilustrativa/LOGO DA EMPRESA_COLORIDO.png",
-                  "logo duduq":  "Imagens Ilustrativa/LOGO DUDUQ.png",
                   "logo eduq play":  "Imagens Ilustrativa/Logo EduQ Play.png",
                   "mochila":  "Imagens Ilustrativa/Mochila.png",
                   "mochila ao lado da cadeira":  "Imagens Ilustrativa/Mochila ao lado da cadeira.png",
                   "mochila vermelha e amarela":  "Imagens Ilustrativa/Mochila vermelha e amarela.png",
                   "my name":  "Imagens Ilustrativa/My name.png",
                   "nervous":  "Imagens Ilustrativa/nervous.png",
+                  "nove":  "Imagens Ilustrativa/NOVE.png",
+                  "oito":  "Imagens Ilustrativa/OITO.png",
                   "ovelha":  "Imagens Ilustrativa/Ovelha.png",
                   "passaro":  "Imagens Ilustrativa/Passáro.png",
                   "pato":  "Imagens Ilustrativa/Pato.png",
                   "peixe":  "Imagens Ilustrativa/Peixe.png",
                   "porco":  "Imagens Ilustrativa/Porco.png",
+                  "quatro":  "Imagens Ilustrativa/QUATRO.png",
                   "rain":  "Imagens Ilustrativa/Rain.png",
                   "regua":  "Imagens Ilustrativa/Régua.png",
                   "relogio marcando 7 30 ida para a escola":  "Imagens Ilustrativa/Relógio marcando 7-30_ ida para a escola.png",
+                  "seis":  "Imagens Ilustrativa/SEIS.png",
                   "sentada":  "Imagens Ilustrativa/Sentada.png",
+                  "sete":  "Imagens Ilustrativa/SETE.png",
                   "silencio":  "Imagens Ilustrativa/Silêncio.png",
                   "tapete embaixo do guarda roupa":  "Imagens Ilustrativa/Tapete embaixo do guarda-roupa.png",
                   "tartaruga":  "Imagens Ilustrativa/Tartaruga.png",
@@ -976,7 +1190,9 @@
                   "tocando os bracos":  "Imagens Ilustrativa/Tocando os braços.png",
                   "tocando os joelhos":  "Imagens Ilustrativa/Tocando os joelhos.png",
                   "tocando os pes":  "Imagens Ilustrativa/Tocando os pés.png",
+                  "tres":  "Imagens Ilustrativa/TRÊS.png",
                   "tv sobre a mesa":  "Imagens Ilustrativa/TV sobre a mesa.png",
+                  "um":  "Imagens Ilustrativa/UM.png",
                   "vaca":  "Imagens Ilustrativa/Vaca.png",
                   "veterinario cuidando de um animal":  "Imagens Ilustrativa/Veterinário cuidando de um animal.png",
                   "wheelchair boy":  "Imagens Ilustrativa/wheelchair_boy.png"

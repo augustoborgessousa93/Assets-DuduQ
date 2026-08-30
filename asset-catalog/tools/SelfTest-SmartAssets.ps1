@@ -62,7 +62,7 @@ if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
 }
 
 $RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
-$catalogPath = Join-Path $RepoRoot "asset-catalog\assets-index.json"
+$catalogPath = Join-Path $RepoRoot "asset-catalog/assets-index.json"
 
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
     throw "assets-index.json nao encontrado."
@@ -80,8 +80,9 @@ if ($null -eq $globalFallback) {
 }
 
 $checks = @(
-    [pscustomobject]@{ request = "dog"; expectedFile = "Cachorro.png" },
-    [pscustomobject]@{ request = "eraser"; expectedFile = "Borracha.png" }
+    [pscustomobject]@{ request = "dog"; expectedFile = "pet-dog-cachorro.png" },
+    [pscustomobject]@{ request = "eraser"; expectedFile = "Borracha.png" },
+    [pscustomobject]@{ request = "goodbye"; expectedFile = "greeting-goodbye-tchau.png" }
 )
 
 foreach ($check in $checks) {
@@ -115,7 +116,7 @@ Write-Host ("OK: fallback global -> " + [string]$globalFallback) -ForegroundColo
 Write-Host ""
 Write-Host "Executando teste end-to-end do Resolve-DuduQContent.ps1..." -ForegroundColor Cyan
 
-$testRoot = Join-Path $RepoRoot "asset-catalog\test"
+$testRoot = Join-Path $RepoRoot "asset-catalog/test"
 New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
 
 $testInput = Join-Path $testRoot "__smart-assets-selftest-input.json"
@@ -150,9 +151,9 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 )
 
 try {
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $RepoRoot "asset-catalog\tools\Resolve-DuduQContent.ps1") -InputPath $testInput -OutputPath $testOutput -RepoRoot $RepoRoot
+    & (Join-Path $RepoRoot "asset-catalog/tools/Resolve-DuduQContent.ps1") -InputPath $testInput -OutputPath $testOutput -RepoRoot $RepoRoot
 
-    if ($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -notin @(0, $null)) {
         throw "Resolve-DuduQContent.ps1 falhou no self-test."
     }
 
@@ -162,8 +163,8 @@ try {
 
     $resolved = ([IO.File]::ReadAllText($testOutput)) | ConvertFrom-Json
 
-    if ([string]$resolved.items[0]._assetResolution.file -ne "Cachorro.png") {
-        throw "Self-test dog nao resolveu para Cachorro.png."
+    if ([string]$resolved.items[0]._assetResolution.file -ne "pet-dog-cachorro.png") {
+        throw "Self-test dog nao resolveu para pet-dog-cachorro.png."
     }
 
     if ([string]$resolved.items[1]._assetResolution.file -ne "Borracha.png") {

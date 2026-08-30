@@ -1,12 +1,12 @@
 {
   "report": "DUDUQ_SMART_ASSETS_CATALOG_BUILD",
-  "generatedAt": "2026-08-30T01:17:21.1394017+00:00",
+  "generatedAt": "2026-08-30T14:43:04.8629235+00:00",
   "repoRoot": "/home/runner/work/Assets-DuduQ/Assets-DuduQ",
   "catalogPath": "/home/runner/work/Assets-DuduQ/Assets-DuduQ/asset-catalog/assets-index.json",
   "stats": {
     "images": 237,
     "uniqueKeys": 236,
-    "aliases": 77,
+    "aliases": 236,
     "fallbacks": 1,
     "collisions": 1,
     "resolvedCollisions": 1,

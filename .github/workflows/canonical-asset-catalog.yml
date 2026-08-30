@@ -13,6 +13,7 @@ on:
       - "asset-catalog/tools/Build-AssetCatalog.ps1"
       - "asset-catalog/tools/Validate-AssetCatalog.ps1"
       - "asset-catalog/tools/Test-SemanticCollisionContract.ps1"
+      - "asset-catalog/tools/Test-Core109AliasCompatibility.ps1"
       - "asset-catalog/tools/SelfTest-SmartAssets.ps1"
       - ".github/workflows/canonical-asset-catalog.yml"
   workflow_dispatch:
@@ -41,6 +42,10 @@ jobs:
       - name: Validate canonical catalog integrity
         shell: pwsh
         run: ./asset-catalog/tools/Validate-AssetCatalog.ps1 -RepoRoot "$PWD"
+
+      - name: Guard Core 1.0.9 semantic compatibility
+        shell: pwsh
+        run: ./asset-catalog/tools/Test-Core109AliasCompatibility.ps1 -RepoRoot "$PWD"
 
       - name: Run smart assets self-test
         shell: pwsh

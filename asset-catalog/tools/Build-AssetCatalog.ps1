@@ -67,6 +67,15 @@ function Encode-RelativePath {
     return ($encodedParts -join '/')
 }
 
+function Get-PropertyValue {
+    param([object]$Object, [string]$Name)
+
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
 function Find-AssetTarget {
     param(
         [object]$Assets,
@@ -196,26 +205,137 @@ foreach ($file in $files) {
 
 $assetsMap = [ordered]@{}
 foreach ($asset in $assetList) {
-    $assetsMap[[string]$asset.id] = $asset
+    $assetId = [string]$asset.id
+    if ($assetsMap.Contains($assetId)) {
+        throw "ID de asset duplicado no catalogo: $assetId"
+    }
+    $assetsMap[$assetId] = $asset
+}
+
+$warnings = @()
+$errors = @()
+$overrides = @{}
+$overrideSource = Get-PropertyValue -Object $settings -Name "semanticCollisionOverrides"
+
+if ($null -ne $overrideSource) {
+    foreach ($property in @($overrideSource.PSObject.Properties)) {
+        $overrideKey = Normalize-Key $property.Name
+        if (-not $overrideKey) {
+            $errors += "Override de colisao ignorado: chave semantica vazia."
+            continue
+        }
+
+        if ($overrides.ContainsKey($overrideKey)) {
+            $errors += "Overrides de colisao duplicados apos normalizacao para '$overrideKey'."
+            continue
+        }
+
+        $canonicalAsset = [string](Get-PropertyValue -Object $property.Value -Name "canonicalAsset")
+        $reason = [string](Get-PropertyValue -Object $property.Value -Name "reason")
+
+        if ([string]::IsNullOrWhiteSpace($canonicalAsset)) {
+            $errors += "Override '$($property.Name)' nao declara canonicalAsset."
+        }
+
+        if ([string]::IsNullOrWhiteSpace($reason)) {
+            $errors += "Override '$($property.Name)' nao declara reason editorial."
+        }
+
+        $overrides[$overrideKey] = [pscustomobject][ordered]@{
+            sourceKey = [string]$property.Name
+            canonicalAsset = $canonicalAsset
+            reason = $reason
+        }
+    }
 }
 
 $byKey = [ordered]@{}
-$collisions = @()
+$resolvedCollisions = @()
+$unresolvedCollisions = @()
+$collisionKeys = @{}
 
 foreach ($key in @($byNormalized.Keys | Sort-Object)) {
     $ids = @($byNormalized[$key])
 
     if ($ids.Count -eq 1) {
         $byKey[[string]$key] = [string]$ids[0]
-    } else {
-        $collisions += [pscustomobject][ordered]@{
+        continue
+    }
+
+    $collisionKeys[[string]$key] = $true
+    $override = $null
+    if ($overrides.ContainsKey([string]$key)) {
+        $override = $overrides[[string]$key]
+    }
+
+    if ($null -eq $override) {
+        $unresolvedCollisions += [pscustomobject][ordered]@{
             key = [string]$key
+            status = "unresolved"
             assets = @($ids)
         }
+        continue
+    }
+
+    $matches = @(
+        Find-AssetTarget -Assets $assetList -Target ([string]$override.canonicalAsset)
+    )
+
+    if ($matches.Count -eq 0) {
+        $errors += "Override '$($override.sourceKey)' aponta para asset inexistente '$($override.canonicalAsset)'."
+        $unresolvedCollisions += [pscustomobject][ordered]@{
+            key = [string]$key
+            status = "unresolved-invalid-override"
+            assets = @($ids)
+            requestedCanonicalAsset = [string]$override.canonicalAsset
+            reason = [string]$override.reason
+        }
+        continue
+    }
+
+    if ($matches.Count -gt 1) {
+        $errors += "Override '$($override.sourceKey)' aponta para target ambiguo '$($override.canonicalAsset)'."
+        $unresolvedCollisions += [pscustomobject][ordered]@{
+            key = [string]$key
+            status = "unresolved-invalid-override"
+            assets = @($ids)
+            requestedCanonicalAsset = [string]$override.canonicalAsset
+            reason = [string]$override.reason
+        }
+        continue
+    }
+
+    $canonicalId = [string]$matches[0].id
+    if ($ids -notcontains $canonicalId) {
+        $errors += "Override '$($override.sourceKey)' aponta para '$canonicalId', que nao participa da colisao '$key'."
+        $unresolvedCollisions += [pscustomobject][ordered]@{
+            key = [string]$key
+            status = "unresolved-invalid-override"
+            assets = @($ids)
+            requestedCanonicalAsset = [string]$override.canonicalAsset
+            requestedCanonicalAssetId = $canonicalId
+            reason = [string]$override.reason
+        }
+        continue
+    }
+
+    $byKey[[string]$key] = $canonicalId
+    $resolvedCollisions += [pscustomobject][ordered]@{
+        key = [string]$key
+        status = "resolved"
+        assets = @($ids)
+        canonicalAsset = [string]$matches[0].file
+        canonicalAssetId = $canonicalId
+        reason = [string]$override.reason
     }
 }
 
-$warnings = @()
+foreach ($overrideKey in @($overrides.Keys | Sort-Object)) {
+    if (-not $collisionKeys.ContainsKey([string]$overrideKey)) {
+        $errors += "Override '$($overrides[$overrideKey].sourceKey)' nao corresponde a uma colisao semantica atual."
+    }
+}
+
 $aliases = [ordered]@{}
 
 if (Test-Path -LiteralPath $aliasesPath -PathType Leaf) {
@@ -271,8 +391,9 @@ if (Test-Path -LiteralPath $fallbacksPath -PathType Leaf) {
     }
 }
 
+$allCollisions = @($resolvedCollisions) + @($unresolvedCollisions)
 $catalog = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     generatedAt = (Get-Date).ToString("o")
     repository = [string]$settings.repository
     branch = [string]$settings.branch
@@ -290,15 +411,21 @@ $catalog = [ordered]@{
         uniqueKeys = $byKey.Count
         aliases = $aliases.Count
         fallbacks = $fallbacks.Count
-        collisions = $collisions.Count
+        collisions = $allCollisions.Count
+        resolvedCollisions = $resolvedCollisions.Count
+        unresolvedCollisions = $unresolvedCollisions.Count
         warnings = $warnings.Count
+        errors = $errors.Count
     }
     assets = $assetsMap
     byKey = $byKey
     aliases = $aliases
     fallbacks = $fallbacks
-    collisions = @($collisions)
+    collisions = @($allCollisions)
+    resolvedCollisions = @($resolvedCollisions)
+    unresolvedCollisions = @($unresolvedCollisions)
     warnings = @($warnings)
+    errors = @($errors)
 }
 
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
@@ -316,8 +443,10 @@ $report = [ordered]@{
     repoRoot = $RepoRoot
     catalogPath = $catalogPath
     stats = $catalog.stats
-    collisions = @($collisions)
+    resolvedCollisions = @($resolvedCollisions)
+    unresolvedCollisions = @($unresolvedCollisions)
     warnings = @($warnings)
+    errors = @($errors)
 }
 
 $reportPath = Join-Path $catalogRoot "catalog-build-report.json"
@@ -333,16 +462,26 @@ Write-Host ("Imagens: " + $assetList.Count)
 Write-Host ("Chaves unicas: " + $byKey.Count)
 Write-Host ("Aliases ativos: " + $aliases.Count)
 Write-Host ("Fallbacks ativos: " + $fallbacks.Count)
-Write-Host ("Colisoes: " + $collisions.Count)
+Write-Host ("Colisoes resolvidas: " + $resolvedCollisions.Count)
+Write-Host ("Colisoes nao resolvidas: " + $unresolvedCollisions.Count)
 Write-Host ("Avisos: " + $warnings.Count)
+Write-Host ("Erros de configuracao: " + $errors.Count)
 Write-Host ""
 Write-Host ("Indice: " + $catalogPath)
 Write-Host ("Relatorio: " + $reportPath)
 
-if ($collisions.Count -gt 0) {
+if ($resolvedCollisions.Count -gt 0) {
     Write-Host ""
-    Write-Host "COLISOES DE NOME NORMALIZADO:" -ForegroundColor Yellow
-    foreach ($collision in $collisions) {
+    Write-Host "COLISOES RESOLVIDAS EDITORIALMENTE:" -ForegroundColor Cyan
+    foreach ($collision in $resolvedCollisions) {
+        Write-Host ("- " + $collision.key + " -> " + $collision.canonicalAssetId + " (" + $collision.reason + ")") -ForegroundColor Cyan
+    }
+}
+
+if ($unresolvedCollisions.Count -gt 0) {
+    Write-Host ""
+    Write-Host "COLISOES NAO RESOLVIDAS:" -ForegroundColor Yellow
+    foreach ($collision in $unresolvedCollisions) {
         Write-Host ("- " + $collision.key + ": " + (@($collision.assets) -join ", ")) -ForegroundColor Yellow
     }
 }
@@ -352,5 +491,13 @@ if ($warnings.Count -gt 0) {
     Write-Host "AVISOS:" -ForegroundColor Yellow
     foreach ($warning in $warnings) {
         Write-Host ("- " + $warning) -ForegroundColor Yellow
+    }
+}
+
+if ($errors.Count -gt 0) {
+    Write-Host ""
+    Write-Host "ERROS DE CONFIGURACAO:" -ForegroundColor Red
+    foreach ($errorMessage in $errors) {
+        Write-Host ("- " + $errorMessage) -ForegroundColor Red
     }
 }

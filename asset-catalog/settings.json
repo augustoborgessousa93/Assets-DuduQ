@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "repository": "augustoborgessousa93/Assets-DuduQ",
   "branch": "main",
   "imagesFolder": "Imagens Ilustrativa",
@@ -21,6 +21,12 @@
   "categoryField": "imageCategory",
   "resolutionMetadataField": "_assetResolution",
   "writeResolutionMetadata": true,
+  "semanticCollisionOverrides": {
+    "bye tchau": {
+      "canonicalAsset": "greeting-goodbye-tchau.png",
+      "reason": "canonical greeting asset"
+    }
+  },
   "fuzzy": {
     "enabled": true,
     "threshold": 0.92,

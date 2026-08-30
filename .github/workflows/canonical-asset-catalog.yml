@@ -11,9 +11,11 @@ on:
       - "asset-catalog/fallbacks.csv"
       - "asset-catalog/settings.json"
       - "asset-catalog/tools/Build-AssetCatalog.ps1"
+      - "asset-catalog/tools/Build-RuntimeIndex.ps1"
       - "asset-catalog/tools/Validate-AssetCatalog.ps1"
       - "asset-catalog/tools/Test-SemanticCollisionContract.ps1"
       - "asset-catalog/tools/Test-Core109AliasCompatibility.ps1"
+      - "asset-catalog/tools/Test-RuntimeIndexParity.ps1"
       - "asset-catalog/tools/SelfTest-SmartAssets.ps1"
       - ".github/workflows/canonical-asset-catalog.yml"
   workflow_dispatch:
@@ -47,21 +49,54 @@ jobs:
         shell: pwsh
         run: ./asset-catalog/tools/Test-Core109AliasCompatibility.ps1 -RepoRoot "$PWD"
 
+      - name: Generate synchronous runtime index
+        shell: pwsh
+        run: ./asset-catalog/tools/Build-RuntimeIndex.ps1 -RepoRoot "$PWD"
+
+      - name: Verify runtime index parity
+        shell: pwsh
+        run: ./asset-catalog/tools/Test-RuntimeIndexParity.ps1 -RepoRoot "$PWD"
+
+      - name: Execute runtime index contract
+        shell: bash
+        run: |
+          node --check asset-catalog/runtime-index.js
+          node - <<'NODE'
+          require('./asset-catalog/runtime-index.js');
+          const catalog = globalThis.DUDUQ_CANONICAL_ASSET_CATALOG;
+          if (!catalog || catalog.schemaVersion !== 2) throw new Error('Canonical runtime schema 2 not installed.');
+          if (catalog.stats.images !== 237) throw new Error(`Unexpected runtime image count: ${catalog.stats.images}`);
+          if (catalog.stats.aliases < 236) throw new Error(`Unexpected runtime alias count: ${catalog.stats.aliases}`);
+          if (catalog.stats.unresolvedCollisions !== 0 || catalog.stats.warnings !== 0 || catalog.stats.errors !== 0) {
+            throw new Error('Canonical runtime integrity counters are not clean.');
+          }
+          if (catalog.aliases['bye tchau'] !== 'Imagens Ilustrativa/greeting-goodbye-tchau.png') {
+            throw new Error('bye tchau canonical runtime target regressed.');
+          }
+          console.log(JSON.stringify({
+            status: 'PASS',
+            schemaVersion: catalog.schemaVersion,
+            images: catalog.stats.images,
+            aliases: catalog.stats.aliases,
+            resolvedCollisions: catalog.stats.resolvedCollisions
+          }, null, 2));
+          NODE
+
       - name: Run smart assets self-test
         shell: pwsh
         run: ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot "$PWD"
 
-      - name: Detect semantic catalog change
+      - name: Detect generated catalog change
         id: semantic
         shell: bash
         run: |
-          if git diff --quiet -- asset-catalog/assets-index.json; then
+          if git diff --quiet -- asset-catalog/assets-index.json && [ -f asset-catalog/runtime-index.js ] && git ls-files --error-unmatch asset-catalog/runtime-index.js >/dev/null 2>&1 && git diff --quiet -- asset-catalog/runtime-index.js; then
             git checkout -- asset-catalog/catalog-build-report.json
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Canonical catalog already matches repository assets."
+            echo "Canonical catalog/runtime already match repository assets."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Canonical catalog needs regeneration."
+            echo "Canonical catalog/runtime need regeneration."
           fi
 
       - name: Commit regenerated catalog
@@ -70,6 +105,6 @@ jobs:
         run: |
           git config user.name "duduq-catalog-bot"
           git config user.email "duduq-catalog-bot@users.noreply.github.com"
-          git add asset-catalog/assets-index.json asset-catalog/catalog-build-report.json
+          git add asset-catalog/assets-index.json asset-catalog/runtime-index.js asset-catalog/catalog-build-report.json
           git commit -m "chore(assets): rebuild canonical asset catalog"
           git push

@@ -1,0 +1,66 @@
+name: Canonical Asset Catalog
+
+on:
+  push:
+    branches:
+      - main
+      - refactor/canonical-asset-catalog-v1
+    paths:
+      - "Imagens Ilustrativa/**"
+      - "asset-catalog/aliases.csv"
+      - "asset-catalog/fallbacks.csv"
+      - "asset-catalog/settings.json"
+      - "asset-catalog/tools/Build-AssetCatalog.ps1"
+      - "asset-catalog/tools/SelfTest-SmartAssets.ps1"
+      - ".github/workflows/canonical-asset-catalog.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild canonical catalog
+        shell: pwsh
+        run: ./asset-catalog/tools/Build-AssetCatalog.ps1 -RepoRoot "$PWD"
+
+      - name: Validate canonical catalog
+        shell: pwsh
+        run: |
+          ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot "$PWD"
+          $catalog = Get-Content -LiteralPath "asset-catalog/assets-index.json" -Raw | ConvertFrom-Json
+          $collisionCount = @($catalog.collisions).Count
+          $warningCount = @($catalog.warnings).Count
+          if ($collisionCount -gt 0) { throw "Catalogo possui $collisionCount colisao(oes) semantica(s)." }
+          if ($warningCount -gt 0) { throw "Catalogo possui $warningCount aviso(s) que exigem revisao." }
+
+      - name: Detect semantic catalog change
+        id: semantic
+        shell: bash
+        run: |
+          if git diff --quiet -- asset-catalog/assets-index.json; then
+            git checkout -- asset-catalog/catalog-build-report.json
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Canonical catalog already matches repository assets."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Canonical catalog needs regeneration."
+          fi
+
+      - name: Commit regenerated catalog
+        if: steps.semantic.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "duduq-catalog-bot"
+          git config user.email "duduq-catalog-bot@users.noreply.github.com"
+          git add asset-catalog/assets-index.json asset-catalog/catalog-build-report.json
+          git commit -m "chore(assets): rebuild canonical asset catalog"
+          git push

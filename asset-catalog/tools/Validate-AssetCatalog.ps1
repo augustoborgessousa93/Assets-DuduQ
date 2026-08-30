@@ -19,12 +19,39 @@ function Find-AssetsRepo {
     throw "Assets-DuduQ nao encontrado automaticamente."
 }
 
+function Normalize-Key {
+    param([object]$Value)
+    $text = [string]$Value
+    if ([string]::IsNullOrWhiteSpace($text)) { return "" }
+    try { $text = [Uri]::UnescapeDataString($text) } catch {}
+    $text = [IO.Path]::GetFileNameWithoutExtension($text)
+    $formD = $text.Normalize([Text.NormalizationForm]::FormD)
+    $builder = New-Object System.Text.StringBuilder
+    foreach ($ch in $formD.ToCharArray()) {
+        $unicodeCategory = [Globalization.CharUnicodeInfo]::GetUnicodeCategory($ch)
+        if ($unicodeCategory -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+            [void]$builder.Append($ch)
+        }
+    }
+    $text = $builder.ToString().Normalize([Text.NormalizationForm]::FormC).ToLowerInvariant()
+    $text = $text -replace '&', ' e '
+    $text = $text -replace '[_\-]+', ' '
+    $text = $text -replace '[^\p{L}\p{Nd}]+', ' '
+    $text = $text -replace '\s+', ' '
+    return $text.Trim()
+}
+
 function Get-PropertyValue {
     param([object]$Object, [string]$Name)
     if ($null -eq $Object) { return $null }
     $property = $Object.PSObject.Properties[$Name]
     if ($null -eq $property) { return $null }
     return $property.Value
+}
+
+function Get-PhysicalPath {
+    param([string]$Root, [string]$AssetId)
+    return (Join-Path $Root ($AssetId -replace '/', [IO.Path]::DirectorySeparatorChar))
 }
 
 if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
@@ -83,7 +110,7 @@ foreach ($property in $assetProperties) {
         throw "Asset '$id' possui id interno divergente '$($asset.id)'."
     }
 
-    $physicalPath = Join-Path $RepoRoot ($id -replace '/', [IO.Path]::DirectorySeparatorChar)
+    $physicalPath = Get-PhysicalPath -Root $RepoRoot -AssetId $id
     if (-not (Test-Path -LiteralPath $physicalPath -PathType Leaf)) {
         throw "Asset fisico ausente: $id"
     }
@@ -104,14 +131,38 @@ foreach ($collision in $resolved) {
     if ([string]$collision.status -ne "resolved") {
         throw "Colisao em resolvedCollisions sem status resolved: $($collision.key)"
     }
+
     $canonicalId = [string]$collision.canonicalAssetId
     $participants = @($collision.assets | ForEach-Object { [string]$_ })
+    $mode = [string]$collision.participationMode
+    $equivalentId = [string]$collision.equivalentParticipantId
+
     if (-not $seenIds.ContainsKey($canonicalId)) {
         throw "Colisao resolvida '$($collision.key)' aponta para ID ausente '$canonicalId'."
     }
-    if ($participants -notcontains $canonicalId) {
-        throw "Colisao resolvida '$($collision.key)' aponta para asset que nao participa da colisao."
+    if ($participants -notcontains $equivalentId) {
+        throw "Colisao resolvida '$($collision.key)' nao registra participante equivalente valido."
     }
+
+    if ($mode -eq "direct") {
+        if ($canonicalId -ne $equivalentId -or $participants -notcontains $canonicalId) {
+            throw "Colisao '$($collision.key)' marcou participacao direta de forma inconsistente."
+        }
+    } elseif ($mode -eq "content-equivalent") {
+        $canonicalPath = Get-PhysicalPath -Root $RepoRoot -AssetId $canonicalId
+        $participantPath = Get-PhysicalPath -Root $RepoRoot -AssetId $equivalentId
+        $canonicalHash = (Get-FileHash -LiteralPath $canonicalPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $participantHash = (Get-FileHash -LiteralPath $participantPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($canonicalHash -ne $participantHash) {
+            throw "Colisao '$($collision.key)' declara equivalencia binaria que nao existe."
+        }
+        if ([string]$collision.contentSha256 -ne $canonicalHash) {
+            throw "Colisao '$($collision.key)' possui SHA-256 de auditoria divergente."
+        }
+    } else {
+        throw "Colisao '$($collision.key)' possui participationMode desconhecido '$mode'."
+    }
+
     if ([string]::IsNullOrWhiteSpace([string]$collision.reason)) {
         throw "Colisao resolvida '$($collision.key)' nao registra justificativa editorial."
     }
@@ -124,7 +175,8 @@ if ($null -ne $overrideSource) {
         if ([string]::IsNullOrWhiteSpace($canonicalTarget)) {
             throw "Override '$($property.Name)' sem canonicalAsset."
         }
-        $matchingResolved = @($resolved | Where-Object { [string]$_.key -eq [string]$property.Name })
+        $normalizedKey = Normalize-Key $property.Name
+        $matchingResolved = @($resolved | Where-Object { [string]$_.key -eq $normalizedKey })
         if ($matchingResolved.Count -ne 1) {
             throw "Override '$($property.Name)' nao aparece exatamente uma vez em resolvedCollisions."
         }

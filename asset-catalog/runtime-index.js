@@ -1,4 +1,12 @@
-{
+/* =========================================================
+   DUDUQ CANONICAL ASSET CATALOG — RUNTIME INDEX
+   AUTO-GENERATED from asset-catalog/assets-index.json.
+   DO NOT EDIT BY HAND. Rebuild through the canonical catalog pipeline.
+   ========================================================= */
+(function (root) {
+  "use strict";
+
+  const catalog = /*__DUDUQ_CATALOG_JSON_START__*/{
   "schemaVersion": 2,
   "generatedAt": "2026-08-30T14:47:09.6346113+00:00",
   "repository": "augustoborgessousa93/Assets-DuduQ",
@@ -3155,4 +3163,28 @@
   "unresolvedCollisions": [],
   "warnings": [],
   "errors": []
-}
+}/*__DUDUQ_CATALOG_JSON_END__*/;
+
+  function deepFreeze(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    Object.getOwnPropertyNames(value).forEach(function (key) {
+      deepFreeze(value[key]);
+    });
+    return Object.freeze(value);
+  }
+
+  const frozenCatalog = deepFreeze(catalog);
+
+  if (root.DUDUQ_CANONICAL_ASSET_CATALOG && root.DUDUQ_CANONICAL_ASSET_CATALOG !== frozenCatalog) {
+    throw new Error("DUDUQ canonical asset catalog already installed with a different runtime payload.");
+  }
+
+  if (!root.DUDUQ_CANONICAL_ASSET_CATALOG) {
+    Object.defineProperty(root, "DUDUQ_CANONICAL_ASSET_CATALOG", {
+      value: frozenCatalog,
+      writable: false,
+      configurable: false,
+      enumerable: false
+    });
+  }
+})(typeof globalThis !== "undefined" ? globalThis : window);

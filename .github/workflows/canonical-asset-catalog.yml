@@ -70,7 +70,7 @@ jobs:
           if (catalog.stats.unresolvedCollisions !== 0 || catalog.stats.warnings !== 0 || catalog.stats.errors !== 0) {
             throw new Error('Canonical runtime integrity counters are not clean.');
           }
-          if (catalog.aliases['bye tchau'] !== 'Imagens Ilustrativa/greeting-goodbye-tchau.png') {
+          if (catalog.byKey['bye tchau'] !== 'Imagens Ilustrativa/greeting-goodbye-tchau.png') {
             throw new Error('bye tchau canonical runtime target regressed.');
           }
           console.log(JSON.stringify({

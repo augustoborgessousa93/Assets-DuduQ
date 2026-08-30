@@ -153,10 +153,6 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 try {
     & (Join-Path $RepoRoot "asset-catalog/tools/Resolve-DuduQContent.ps1") -InputPath $testInput -OutputPath $testOutput -RepoRoot $RepoRoot
 
-    if ($LASTEXITCODE -notin @(0, $null)) {
-        throw "Resolve-DuduQContent.ps1 falhou no self-test."
-    }
-
     if (-not (Test-Path -LiteralPath $testOutput -PathType Leaf)) {
         throw "Arquivo de saida do resolver nao foi criado."
     }

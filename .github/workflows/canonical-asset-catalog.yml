@@ -11,6 +11,8 @@ on:
       - "asset-catalog/fallbacks.csv"
       - "asset-catalog/settings.json"
       - "asset-catalog/tools/Build-AssetCatalog.ps1"
+      - "asset-catalog/tools/Validate-AssetCatalog.ps1"
+      - "asset-catalog/tools/Test-SemanticCollisionContract.ps1"
       - "asset-catalog/tools/SelfTest-SmartAssets.ps1"
       - ".github/workflows/canonical-asset-catalog.yml"
   workflow_dispatch:
@@ -28,19 +30,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Test semantic collision contract
+        shell: pwsh
+        run: ./asset-catalog/tools/Test-SemanticCollisionContract.ps1 -RepoRoot "$PWD"
+
       - name: Rebuild canonical catalog
         shell: pwsh
         run: ./asset-catalog/tools/Build-AssetCatalog.ps1 -RepoRoot "$PWD"
 
-      - name: Validate canonical catalog
+      - name: Validate canonical catalog integrity
         shell: pwsh
-        run: |
-          ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot "$PWD"
-          $catalog = Get-Content -LiteralPath "asset-catalog/assets-index.json" -Raw | ConvertFrom-Json
-          $collisionCount = @($catalog.collisions).Count
-          $warningCount = @($catalog.warnings).Count
-          if ($collisionCount -gt 0) { throw "Catalogo possui $collisionCount colisao(oes) semantica(s)." }
-          if ($warningCount -gt 0) { throw "Catalogo possui $warningCount aviso(s) que exigem revisao." }
+        run: ./asset-catalog/tools/Validate-AssetCatalog.ps1 -RepoRoot "$PWD"
+
+      - name: Run smart assets self-test
+        shell: pwsh
+        run: ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot "$PWD"
 
       - name: Detect semantic catalog change
         id: semantic

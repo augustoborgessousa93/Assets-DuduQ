@@ -87,8 +87,6 @@ function Find-AssetTarget {
         return @()
     }
 
-    # Explicit enumeration instead of binding Generic.List<T> to object[].
-    # This is intentionally conservative for Windows PowerShell 5.1.
     $items = @()
     foreach ($asset in $Assets) {
         $items += $asset
@@ -118,6 +116,52 @@ function Find-AssetTarget {
     }
 
     return @($normalizedMatches)
+}
+
+function Get-AssetPhysicalPath {
+    param([string]$Root, [string]$AssetId)
+    $nativeRelative = $AssetId -replace '/', [IO.Path]::DirectorySeparatorChar
+    return (Join-Path $Root $nativeRelative)
+}
+
+function Find-EquivalentCollisionParticipant {
+    param(
+        [string]$Root,
+        [string]$CanonicalId,
+        [object[]]$ParticipantIds
+    )
+
+    if ($ParticipantIds -contains $CanonicalId) {
+        return [pscustomobject][ordered]@{
+            mode = "direct"
+            participantId = $CanonicalId
+            sha256 = ""
+        }
+    }
+
+    $canonicalPath = Get-AssetPhysicalPath -Root $Root -AssetId $CanonicalId
+    if (-not (Test-Path -LiteralPath $canonicalPath -PathType Leaf)) {
+        return $null
+    }
+
+    $canonicalHash = (Get-FileHash -LiteralPath $canonicalPath -Algorithm SHA256).Hash.ToLowerInvariant()
+
+    foreach ($participantId in $ParticipantIds) {
+        $participantPath = Get-AssetPhysicalPath -Root $Root -AssetId ([string]$participantId)
+        if (-not (Test-Path -LiteralPath $participantPath -PathType Leaf)) {
+            continue
+        }
+        $participantHash = (Get-FileHash -LiteralPath $participantPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($participantHash -eq $canonicalHash) {
+            return [pscustomobject][ordered]@{
+                mode = "content-equivalent"
+                participantId = [string]$participantId
+                sha256 = $canonicalHash
+            }
+        }
+    }
+
+    return $null
 }
 
 if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
@@ -306,8 +350,9 @@ foreach ($key in @($byNormalized.Keys | Sort-Object)) {
     }
 
     $canonicalId = [string]$matches[0].id
-    if ($ids -notcontains $canonicalId) {
-        $errors += "Override '$($override.sourceKey)' aponta para '$canonicalId', que nao participa da colisao '$key'."
+    $participation = Find-EquivalentCollisionParticipant -Root $RepoRoot -CanonicalId $canonicalId -ParticipantIds @($ids)
+    if ($null -eq $participation) {
+        $errors += "Override '$($override.sourceKey)' aponta para '$canonicalId', que nao participa nem e equivalente binario de um participante da colisao '$key'."
         $unresolvedCollisions += [pscustomobject][ordered]@{
             key = [string]$key
             status = "unresolved-invalid-override"
@@ -326,6 +371,9 @@ foreach ($key in @($byNormalized.Keys | Sort-Object)) {
         assets = @($ids)
         canonicalAsset = [string]$matches[0].file
         canonicalAssetId = $canonicalId
+        participationMode = [string]$participation.mode
+        equivalentParticipantId = [string]$participation.participantId
+        contentSha256 = [string]$participation.sha256
         reason = [string]$override.reason
     }
 }
@@ -474,7 +522,7 @@ if ($resolvedCollisions.Count -gt 0) {
     Write-Host ""
     Write-Host "COLISOES RESOLVIDAS EDITORIALMENTE:" -ForegroundColor Cyan
     foreach ($collision in $resolvedCollisions) {
-        Write-Host ("- " + $collision.key + " -> " + $collision.canonicalAssetId + " (" + $collision.reason + ")") -ForegroundColor Cyan
+        Write-Host ("- " + $collision.key + " -> " + $collision.canonicalAssetId + " [" + $collision.participationMode + "] (" + $collision.reason + ")") -ForegroundColor Cyan
     }
 }
 

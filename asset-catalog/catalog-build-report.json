@@ -1,16 +1,21 @@
 {
   "report": "DUDUQ_SMART_ASSETS_CATALOG_BUILD",
-  "generatedAt": "2026-09-10T22:34:54.2344849+00:00",
+  "generatedAt": "2026-09-10T23:10:14.0534031+00:00",
   "repoRoot": "D:\\a\\Assets-DuduQ\\Assets-DuduQ",
   "catalogPath": "D:\\a\\Assets-DuduQ\\Assets-DuduQ\\asset-catalog\\assets-index.json",
   "stats": {
-    "images": 200,
-    "uniqueKeys": 200,
-    "aliases": 294,
+    "images": 220,
+    "uniqueKeys": 220,
+    "aliases": 354,
     "fallbacks": 1,
     "collisions": 0,
-    "warnings": 0
+    "resolvedCollisions": 0,
+    "unresolvedCollisions": 0,
+    "warnings": 0,
+    "errors": 0
   },
-  "collisions": [],
-  "warnings": []
+  "resolvedCollisions": [],
+  "unresolvedCollisions": [],
+  "warnings": [],
+  "errors": []
 }

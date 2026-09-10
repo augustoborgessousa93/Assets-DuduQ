@@ -74,5 +74,95 @@ $extra = @(
 )
 foreach ($entry in $extra) { Add-Alias $entry[0] $entry[1] $entry[2] }
 
-$en = @('','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty')
-$pt = @('','um','dois','tres','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','de
+# Complete canonical alias generation after the legacy mappings above.
+
+# Repair legacy letter targets such as "Letra A.png" by resolving them
+# only when there is exactly one canonical letter-* asset for that letter.
+foreach ($entry in @($byAlias.Values)) {
+  $legacyTarget = [string]$entry.target
+  if ($legacyTarget -match '^Letra ([A-Za-z])\.png$') {
+    $letter = $Matches[1].ToLowerInvariant()
+    $letterMatches = @(
+      Get-ChildItem -LiteralPath $imagesRoot -File |
+        Where-Object { $_.BaseName -match ("^letter-" + [regex]::Escape($letter) + "(?:-|$)") }
+    )
+    if ($letterMatches.Count -ne 1) {
+      throw ("LETTER_TARGET_RESOLUTION_FAILED: {0} -> {1} candidates" -f $legacyTarget, $letterMatches.Count)
+    }
+    $entry.target = [string]$letterMatches[0].Name
+  }
+}
+
+# Complete the bilingual reusable alias requested for kite without replacing
+# the already-valid Year 3 plain "kite" alias.
+Add-Alias 'pipa' 'toy-kite-pipa.png' 'toy'
+
+# Numbers: derive numeral/English/Portuguese directly from canonical filenames.
+$numberFiles = @(Get-ChildItem -LiteralPath $imagesRoot -File -Filter 'number-*.png' | Sort-Object Name)
+foreach ($file in $numberFiles) {
+  if ($file.BaseName -notmatch '^number-(\d{2})-([^-]+)-(.+)$') { continue }
+  $numeral = ([int]$Matches[1]).ToString()
+  $english = [string]$Matches[2]
+  $portuguese = [string]$Matches[3]
+  Add-Alias $numeral $file.Name 'numbers' 'Canonical numeral alias'
+  Add-Alias $english $file.Name 'numbers' 'Canonical English number alias'
+  Add-Alias $portuguese $file.Name 'numbers' 'Canonical Portuguese number alias'
+}
+
+# Letters: add aliases only for letter-* files that physically exist.
+$letterFiles = @(Get-ChildItem -LiteralPath $imagesRoot -File -Filter 'letter-*.png' | Sort-Object Name)
+$lettersSeen = @{}
+foreach ($file in $letterFiles) {
+  if ($file.BaseName -notmatch '^letter-([a-z])(?:-|$)') { continue }
+  $letter = [string]$Matches[1]
+  if ($lettersSeen.ContainsKey($letter) -and [string]$lettersSeen[$letter] -ne [string]$file.Name) {
+    throw ("LETTER_TARGET_COLLISION: {0} -> {1}, {2}" -f $letter, [string]$lettersSeen[$letter], [string]$file.Name)
+  }
+  $lettersSeen[$letter] = [string]$file.Name
+
+  Add-Alias ("letter " + $letter) $file.Name 'letters' 'Canonical English letter alias'
+  Add-Alias ("letra " + $letter) $file.Name 'letters' 'Canonical Portuguese letter alias'
+
+  $isolatedKey = Normalize-Key $letter
+  if (-not $byAlias.Contains($isolatedKey)) {
+    Add-Alias $letter $file.Name 'letters' 'Canonical isolated letter alias'
+  }
+  elseif ([string]$byAlias[$isolatedKey].target -ne [string]$file.Name) {
+    throw ("ISOLATED_LETTER_ALIAS_COLLISION: {0} -> {1} versus {2}" -f $letter, [string]$byAlias[$isolatedKey].target, [string]$file.Name)
+  }
+}
+
+# Mandatory pre-write target validation. Nothing is overwritten if a target is missing.
+$missingTargets = @()
+foreach ($entry in @($byAlias.Values)) {
+  $target = [string]$entry.target
+  if ([string]::IsNullOrWhiteSpace($target) -or -not (Test-Path -LiteralPath (Join-Path $imagesRoot $target) -PathType Leaf)) {
+    $missingTargets += [pscustomobject]@{ alias=[string]$entry.alias; target=$target }
+  }
+}
+
+Write-Host ("ALIAS_TARGETS_TOTAL = " + $byAlias.Count)
+Write-Host ("ALIAS_TARGETS_EXIST = " + ($byAlias.Count - $missingTargets.Count))
+Write-Host ("ALIAS_TARGETS_MISSING = " + $missingTargets.Count)
+
+if ($missingTargets.Count -gt 0) {
+  foreach ($missing in $missingTargets) {
+    Write-Host ("MISSING: {0} -> {1}" -f $missing.alias, $missing.target) -ForegroundColor Red
+  }
+  throw "ALL_TARGETS_EXIST = FAIL"
+}
+
+$outputRows = @($byAlias.Values | Sort-Object { Normalize-Key ([string]$_.alias) })
+$outputRows | Export-Csv -LiteralPath $aliasesPath -NoTypeInformation -Encoding UTF8
+
+# Re-read and verify that normalized aliases remain unique.
+$writtenRows = @(Import-Csv -LiteralPath $aliasesPath -Encoding UTF8)
+$normalizedKeys = @($writtenRows | ForEach-Object { Normalize-Key ([string]$_.alias) })
+$duplicateKeys = @($normalizedKeys | Group-Object | Where-Object { $_.Count -gt 1 })
+if ($duplicateKeys.Count -gt 0) {
+  throw "ALIASES_UNIQUE_AFTER_NORMALIZATION = FAIL"
+}
+
+Write-Host ("ALIASES_MIGRATED = " + $writtenRows.Count)
+Write-Host "ALIASES_UNIQUE_AFTER_NORMALIZATION = PASS"
+Write-Host "ALL_TARGETS_EXIST = PASS"

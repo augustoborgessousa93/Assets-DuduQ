@@ -1,0 +1,133 @@
+name: DuduQ reconciliation validation
+
+on:
+  push:
+    branches:
+      - tmp/canonical-reconcile-validation-20260910
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Verify scripts parse
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $paths=@(
+            'asset-catalog/tools/Canonicalize-Aliases.ps1',
+            'asset-catalog/tools/Build-AssetCatalog.ps1',
+            'asset-catalog/tools/Build-RuntimeIndex.ps1',
+            'asset-catalog/tools/SelfTest-SmartAssets.ps1',
+            'asset-catalog/tools/Resolve-DuduQContent.ps1'
+          )
+          foreach($p in $paths){
+            $tokens=$null; $errors=$null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $p),[ref]$tokens,[ref]$errors)|Out-Null
+            if($errors.Count){ $errors|ForEach-Object{Write-Host $_.Message -ForegroundColor Red}; throw "SCRIPT_PARSE_FAIL: $p" }
+          }
+          Write-Host 'SCRIPT_PARSE = PASS'
+
+      - name: Verify exactly twenty new binaries preserved by blob
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $expected=[ordered]@{
+            'number-21-twenty-one-vinte-e-um.png'='c5c9c7d24d78a6c030b63e6acd7ea256c2f9fb2e'
+            'number-22-twenty-two-vinte-e-dois.png'='2a58c12cb3411ecf188d86213a9f7c0aff46c8b2'
+            'number-23-twenty-three-vinte-e-tres.png'='591d01d0edae2d05cbe264974ef42b0e4f46143b'
+            'number-24-twenty-four-vinte-e-quatro.png'='895a1d643809e782d45f4c88e39b2f1555a5d14b'
+            'number-25-twenty-five-vinte-e-cinco.png'='11cef2fefbe262f0278a26d84d05c32721c3ab50'
+            'number-26-twenty-six-vinte-e-seis.png'='cd49733df78f3a9822ca7dddde26e376ebc4cc20'
+            'number-27-twenty-seven-vinte-e-sete.png'='fabb13ff957d2f8547f77040135bbf318f33deaf'
+            'number-28-twenty-eight-vinte-e-oito.png'='ac233d428bef18c171766f73fa195032af602ee0'
+            'number-29-twenty-nine-vinte-e-nove.png'='a2aa6400c89476805e443132e042bd127dbb20ea'
+            'number-30-thirty-trinta.png'='2650a48ec8d65f342fe44bd289d6b312b91ca93c'
+            'number-31-thirty-one-trinta-e-um.png'='abd0db63e409c5ad4a8fe986dccb80fa8ee11527'
+            'number-32-thirty-two-trinta-e-dois.png'='5f30de5fd9101271a79bab8c62726bd6c4e216cc'
+            'number-33-thirty-three-trinta-e-tres.png'='3e6339647e9ad9880d45cb9d1945ca743ac8b1db'
+            'number-34-thirty-four-trinta-e-quatro.png'='18beeef49774fb9f0d42c29496732d82bc3da309'
+            'number-35-thirty-five-trinta-e-cinco.png'='037767057f7feb9ca97adf61dacc7bd6d0ec5726'
+            'number-36-thirty-six-trinta-e-seis.png'='4cbbb3d1865ed2a1312d904cbc41788eab70485e'
+            'number-37-thirty-seven-trinta-e-sete.png'='c846ed83058124cf3504e02bd3b630a18a302207'
+            'number-38-thirty-eight-trinta-e-oito.png'='1bd6d2e2bf4d186b044a1897d83502edef9db68a'
+            'number-39-thirty-nine-trinta-e-nove.png'='010e0c3c3953c59efed197b77bae7c7ba81d9001'
+            'number-40-forty-quarenta.png'='0fd2043b64930d3639b1f29257a0a56a72ed2e6e'
+          }
+          if($expected.Count -ne 20){throw 'NEW_FILES_DISCOVERED_COUNT_FAIL'}
+          foreach($name in $expected.Keys){
+            $path=Join-Path 'Imagens Ilustrativa' $name
+            if(-not(Test-Path -LiteralPath $path -PathType Leaf)){throw "CANONICAL_BINARY_MISSING: $name"}
+            $actual=(git hash-object -- $path).Trim()
+            if($actual -ne $expected[$name]){throw "BINARY_CHANGED: $name -> $actual"}
+          }
+          $old=@('twenty-one.png','twenty-two.png','twenty-three.png','twenty-four.png','twenty-five.png','twenty-six.png','twenty-seven.png','twenty-eight.png','twenty-nine.png','thirty.png','thirty-one.png','thirty-two.png','thirty-three.png','thirty-four.png','thirty-five.png','thirty-six.png','thirty-seven.png','thirty-eight.png','thirty-nine.png','forty.png')
+          foreach($name in $old){if(Test-Path -LiteralPath (Join-Path 'Imagens Ilustrativa' $name)){throw "OLD_NEW_NUMBER_NAME_PRESENT: $name"}}
+          Write-Host 'NEW_FILES_DISCOVERED = 20'
+          Write-Host 'NEW_FILES_AUDITED = 20'
+          Write-Host 'NEW_FILES_CANONICALIZED = 20'
+          Write-Host 'NEW_BINARY_BLOBS_UNCHANGED = PASS'
+
+      - name: Canonicalize only new aliases
+        shell: pwsh
+        run: ./asset-catalog/tools/Canonicalize-Aliases.ps1 -RepoRoot (Get-Location).Path
+
+      - name: Build official schema two catalog
+        shell: pwsh
+        run: ./asset-catalog/tools/Build-AssetCatalog.ps1 -RepoRoot (Get-Location).Path
+
+      - name: Run complete smart-assets self test
+        shell: pwsh
+        run: ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot (Get-Location).Path
+
+      - name: Generate deterministic runtime index
+        shell: pwsh
+        run: ./asset-catalog/tools/Build-RuntimeIndex.ps1 -RepoRoot (Get-Location).Path
+
+      - name: Load runtime in isolated JavaScript environment
+        shell: pwsh
+        run: node ./asset-catalog/test/runtime-index-selftest.mjs
+
+      - name: Validate final invariants
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $catalog=Get-Content -Raw -LiteralPath 'asset-catalog/assets-index.json'|ConvertFrom-Json
+          $aliases=@(Import-Csv -LiteralPath 'asset-catalog/aliases.csv' -Encoding UTF8)
+          if([int]$catalog.schemaVersion -ne 2){throw 'SCHEMA_FAIL'}
+          if([int]$catalog.stats.images -ne 220){throw "IMAGES_FAIL=$($catalog.stats.images)"}
+          if([int]$catalog.stats.uniqueKeys -ne 220){throw "UNIQUE_KEYS_FAIL=$($catalog.stats.uniqueKeys)"}
+          if([int]$catalog.stats.aliases -ne 354){throw "ALIASES_FAIL=$($catalog.stats.aliases)"}
+          if($aliases.Count -ne 354){throw "ALIASES_CSV_FAIL=$($aliases.Count)"}
+          if([int]$catalog.stats.fallbacks -ne 1){throw 'FALLBACK_COUNT_FAIL'}
+          if([int]$catalog.stats.unresolvedCollisions -ne 0){throw 'UNRESOLVED_COLLISIONS_FAIL'}
+          if([int]$catalog.stats.warnings -ne 0){throw 'WARNINGS_FAIL'}
+          if([int]$catalog.stats.errors -ne 0){throw 'ERRORS_FAIL'}
+          if(-not(Test-Path -LiteralPath 'asset-catalog/runtime-index.js')){throw 'RUNTIME_NOT_GENERATED'}
+          Write-Host 'CATALOG_IMAGES=220'
+          Write-Host 'UNIQUE_KEYS=220'
+          Write-Host 'ALIASES=354'
+          Write-Host 'MISSING_TARGETS=0'
+          Write-Host 'WARNINGS=0'
+          Write-Host 'UNRESOLVED_COLLISIONS=0'
+          Write-Host 'RUNTIME_INDEX_GENERATED=PASS'
+          Write-Host 'PRE_PROMOTION_RECONCILIATION_VALIDATION=PASS'
+
+      - name: Materialize generated outputs on validation branch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          git config user.name 'DuduQ Reconciliation Validation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- asset-catalog/aliases.csv asset-catalog/assets-index.json asset-catalog/catalog-build-report.json asset-catalog/runtime-index.js
+          if(git diff --cached --quiet){throw 'NO_GENERATED_OUTPUT_CHANGES'}
+          git commit -m 'ci(temp): materialize validated reconciliation outputs [skip ci]'
+          git push origin HEAD:tmp/canonical-reconcile-validation-20260910

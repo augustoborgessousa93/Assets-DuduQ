@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-10T23:10:14.0534031+00:00",
+  "generatedAt": "2026-09-11T14:39:58.2894055+00:00",
   "repository": "augustoborgessousa93/Assets-DuduQ",
   "branch": "main",
   "imagesFolder": "Imagens Ilustrativa",
@@ -22,9 +22,9 @@
     "minimumQueryLength": 4
   },
   "stats": {
-    "images": 220,
-    "uniqueKeys": 220,
-    "aliases": 354,
+    "images": 221,
+    "uniqueKeys": 221,
+    "aliases": 356,
     "fallbacks": 1,
     "collisions": 0,
     "resolvedCollisions": 0,
@@ -1771,6 +1771,17 @@
       "localUrl": "/assets-duduq-local-v1/Imagens%20Ilustrativa/school-object-blue-pencil-lapis-azul.png",
       "sizeBytes": 578712
     },
+    "Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png": {
+      "id": "Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png",
+      "file": "school-object-blue-ruler-regua-azul.png",
+      "stem": "school-object-blue-ruler-regua-azul",
+      "key": "school object blue ruler regua azul",
+      "category": "",
+      "path": "Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png",
+      "rawUrl": "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/main/Imagens%20Ilustrativa/school-object-blue-ruler-regua-azul.png",
+      "localUrl": "/assets-duduq-local-v1/Imagens%20Ilustrativa/school-object-blue-ruler-regua-azul.png",
+      "sizeBytes": 16344
+    },
     "Imagens Ilustrativa/school-object-eraser-borracha.png": {
       "id": "Imagens Ilustrativa/school-object-eraser-borracha.png",
       "file": "school-object-eraser-borracha.png",
@@ -2613,6 +2624,7 @@
     "school object backpack mochila": "Imagens Ilustrativa/school-object-backpack-mochila.png",
     "school object blue pen caneta azul": "Imagens Ilustrativa/school-object-blue-pen-caneta-azul.png",
     "school object blue pencil lapis azul": "Imagens Ilustrativa/school-object-blue-pencil-lapis-azul.png",
+    "school object blue ruler regua azul": "Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png",
     "school object eraser borracha": "Imagens Ilustrativa/school-object-eraser-borracha.png",
     "school object orange crayon giz laranja": "Imagens Ilustrativa/school-object-orange-crayon-giz-laranja.png",
     "school object pencil case estojo": "Imagens Ilustrativa/school-object-pencil-case-estojo.png",
@@ -3030,7 +3042,9 @@
     "vinte e um": "Imagens Ilustrativa/number-21-twenty-one-vinte-e-um.png",
     "waking up": "Imagens Ilustrativa/routine-wake-up-acordar.png",
     "welcome new student": "Imagens Ilustrativa/scene-school-welcome-new-student.png",
-    "wheelchair boy": "Imagens Ilustrativa/person-wheelchair-boy-menino-cadeirante.png"
+    "wheelchair boy": "Imagens Ilustrativa/person-wheelchair-boy-menino-cadeirante.png",
+    "blue ruler": "Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png",
+    "regua azul": "Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png"
   },
   "fallbacks": {
     "*": "Imagens Ilustrativa/placeholder-generic-image.svg"

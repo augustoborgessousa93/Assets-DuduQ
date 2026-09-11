@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
 
       - name: Add deterministic blue-ruler aliases
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $path = Join-Path $PWD 'asset-catalog/aliases.csv'
@@ -70,29 +70,29 @@ jobs:
           $rows | Export-Csv -LiteralPath $path -NoTypeInformation -Encoding UTF8
 
       - name: Rebuild canonical catalog
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           & .\asset-catalog\tools\Build-AssetCatalog.ps1 -RepoRoot $PWD
 
       - name: Rebuild runtime index
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           & .\asset-catalog\tools\Build-RuntimeIndex.ps1 -RepoRoot $PWD
 
       - name: Run canonical smart-assets self-test
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           & .\asset-catalog\tools\SelfTest-SmartAssets.ps1 -RepoRoot $PWD
 
       - name: Run runtime-index self-test
-        shell: powershell
+        shell: pwsh
         run: node .\asset-catalog\test\runtime-index-selftest.mjs
 
       - name: Validate blue-ruler sentinels
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $catalog = (Get-Content -LiteralPath '.\asset-catalog\assets-index.json' -Raw -Encoding UTF8) | ConvertFrom-Json
@@ -130,7 +130,7 @@ jobs:
           Write-Host ("BLUE_RULER_SIZE_BYTES = " + [string]$asset.sizeBytes)
 
       - name: Commit rebuilt catalog outputs
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           git config user.name 'github-actions[bot]'

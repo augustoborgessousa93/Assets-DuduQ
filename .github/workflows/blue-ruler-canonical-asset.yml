@@ -1,0 +1,138 @@
+name: Blue ruler canonical asset validation
+
+on:
+  push:
+    branches:
+      - feat/blue-ruler-canonical-asset-20260911
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add deterministic blue-ruler aliases
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = Join-Path $PWD 'asset-catalog/aliases.csv'
+          $rows = @(Import-Csv -LiteralPath $path -Encoding UTF8)
+
+          function Normalize-Key([object]$Value) {
+            $text = [string]$Value
+            if ([string]::IsNullOrWhiteSpace($text)) { return '' }
+            try { $text = [Uri]::UnescapeDataString($text) } catch {}
+            $text = [IO.Path]::GetFileNameWithoutExtension($text)
+            $formD = $text.Normalize([Text.NormalizationForm]::FormD)
+            $sb = New-Object Text.StringBuilder
+            foreach ($ch in $formD.ToCharArray()) {
+              if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($ch) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+                [void]$sb.Append($ch)
+              }
+            }
+            $text = $sb.ToString().Normalize([Text.NormalizationForm]::FormC).ToLowerInvariant()
+            $text = $text -replace '&',' e ' -replace '[_\-]+',' ' -replace '[^\p{L}\p{Nd}]+',' ' -replace '\s+',' '
+            return $text.Trim()
+          }
+
+          $target = 'school-object-blue-ruler-regua-azul.png'
+          $wanted = @(
+            [pscustomobject][ordered]@{ alias='blue ruler'; target=$target; category='school'; notes='Canonical blue ruler alias' },
+            [pscustomobject][ordered]@{ alias='regua azul'; target=$target; category='school'; notes='Canonical Portuguese blue ruler alias' }
+          )
+
+          $byKey = @{}
+          foreach ($row in $rows) {
+            $key = Normalize-Key $row.alias
+            if ($key) { $byKey[$key] = [string]$row.target }
+          }
+
+          foreach ($entry in $wanted) {
+            $key = Normalize-Key $entry.alias
+            if ($byKey.ContainsKey($key)) {
+              if ([string]$byKey[$key] -ne $target) {
+                throw "Alias collision for '$($entry.alias)': $($byKey[$key])"
+              }
+              continue
+            }
+            $rows += $entry
+            $byKey[$key] = $target
+          }
+
+          $rows | Export-Csv -LiteralPath $path -NoTypeInformation -Encoding UTF8
+          & .\asset-catalog\tools\Canonicalize-Aliases.ps1 -RepoRoot $PWD
+
+      - name: Rebuild canonical catalog
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\asset-catalog\tools\Build-AssetCatalog.ps1 -RepoRoot $PWD
+
+      - name: Rebuild runtime index
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\asset-catalog\tools\Build-RuntimeIndex.ps1 -RepoRoot $PWD
+
+      - name: Run canonical smart-assets self-test
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\asset-catalog\tools\SelfTest-SmartAssets.ps1 -RepoRoot $PWD
+
+      - name: Run runtime-index self-test
+        shell: powershell
+        run: node .\asset-catalog\test\runtime-index-selftest.mjs
+
+      - name: Validate blue-ruler sentinels
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $catalog = (Get-Content -LiteralPath '.\asset-catalog\assets-index.json' -Raw -Encoding UTF8) | ConvertFrom-Json
+
+          if ([int]$catalog.schemaVersion -ne 2) { throw 'BLUE_RULER_SCHEMA = FAIL' }
+          if ([int]$catalog.stats.images -ne 221) { throw "BLUE_RULER_IMAGES = FAIL ($($catalog.stats.images))" }
+          if ([int]$catalog.stats.uniqueKeys -ne 221) { throw "BLUE_RULER_UNIQUE_KEYS = FAIL ($($catalog.stats.uniqueKeys))" }
+          if ([int]$catalog.stats.aliases -ne 356) { throw "BLUE_RULER_ALIASES = FAIL ($($catalog.stats.aliases))" }
+          if ([int]$catalog.stats.unresolvedCollisions -ne 0) { throw 'BLUE_RULER_COLLISIONS = FAIL' }
+          if ([int]$catalog.stats.warnings -ne 0) { throw 'BLUE_RULER_WARNINGS = FAIL' }
+          if ([int]$catalog.stats.errors -ne 0) { throw 'BLUE_RULER_ERRORS = FAIL' }
+
+          $aliasBlue = $catalog.aliases.PSObject.Properties['blue ruler'].Value
+          $aliasPt = $catalog.aliases.PSObject.Properties['regua azul'].Value
+          $keyId = $catalog.byKey.PSObject.Properties['school object blue ruler regua azul'].Value
+
+          if (-not $aliasBlue -or -not $aliasPt -or -not $keyId) { throw 'BLUE_RULER_RESOLUTION = FAIL' }
+          if ($aliasBlue -ne $aliasPt -or $aliasBlue -ne $keyId) { throw 'BLUE_RULER_TARGET_COHERENCE = FAIL' }
+
+          $asset = $catalog.assets.PSObject.Properties[[string]$aliasBlue].Value
+          if ($null -eq $asset) { throw 'BLUE_RULER_ASSET = FAIL' }
+          if ([string]$asset.file -ne 'school-object-blue-ruler-regua-azul.png') { throw 'BLUE_RULER_FILE = FAIL' }
+          if ([int64]$asset.sizeBytes -le 0) { throw 'BLUE_RULER_SIZE = FAIL' }
+
+          Write-Host 'BLUE_RULER_CANONICAL_ASSET = PASS' -ForegroundColor Green
+          Write-Host ("BLUE_RULER_ASSET_ID = " + [string]$aliasBlue)
+          Write-Host ("BLUE_RULER_SIZE_BYTES = " + [string]$asset.sizeBytes)
+
+      - name: Commit rebuilt catalog outputs
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- 'asset-catalog/aliases.csv' 'asset-catalog/assets-index.json' 'asset-catalog/catalog-build-report.json' 'asset-catalog/runtime-index.js'
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host 'Catalog outputs already up to date.'
+            exit 0
+          }
+          git commit -m 'chore(assets): rebuild catalog for blue ruler [skip ci]'
+          git push origin HEAD

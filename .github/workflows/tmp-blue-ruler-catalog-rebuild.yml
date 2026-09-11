@@ -1,0 +1,88 @@
+name: tmp-blue-ruler-catalog-rebuild
+on:
+  push:
+    branches:
+      - tmp/blue-ruler-catalog-rebuild-20260911
+permissions:
+  contents: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/blue-ruler-canonical-asset-20260911
+          fetch-depth: 0
+      - name: Add canonical aliases
+        shell: pwsh
+        run: |
+          $path = 'asset-catalog/aliases.csv'
+          $target = 'school-object-blue-ruler-regua-azul.png'
+          $rows = @(
+            'blue ruler,' + $target,
+            'ruler blue,' + $target,
+            'regua azul,' + $target,
+            'school object blue ruler,' + $target
+          )
+          $text = [IO.File]::ReadAllText($path)
+          foreach ($row in $rows) {
+            if ($text -notmatch [regex]::Escape($row)) { Add-Content -LiteralPath $path -Value $row -Encoding utf8 }
+          }
+      - name: Rebuild canonical catalog
+        shell: pwsh
+        run: |
+          ./asset-catalog/tools/Build-AssetCatalog.ps1 -RepoRoot $PWD
+          ./asset-catalog/tools/Build-RuntimeIndex.ps1 -RepoRoot $PWD
+      - name: Canonical self-tests
+        shell: pwsh
+        run: |
+          ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot $PWD
+      - name: Runtime index self-test
+        run: node asset-catalog/test/runtime-index-selftest.mjs
+      - name: Blue ruler gates
+        shell: pwsh
+        run: |
+          $catalog = Get-Content asset-catalog/assets-index.json -Raw | ConvertFrom-Json
+          if ($catalog.schemaVersion -ne 2) { throw 'schemaVersion != 2' }
+          if ($catalog.stats.unresolvedCollisions -ne 0) { throw 'unresolved collisions' }
+          if ($catalog.stats.warnings -ne 0) { throw 'warnings != 0' }
+          if ($catalog.stats.errors -ne 0) { throw 'errors != 0' }
+          $key = 'school object blue ruler regua azul'
+          $expected = 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
+          if ($catalog.byKey.$key -ne $expected) { throw "canonical key mismatch: $($catalog.byKey.$key)" }
+          foreach ($alias in @('blue ruler','ruler blue','regua azul','school object blue ruler')) {
+            if ($catalog.aliases.$alias -ne $expected) { throw "alias mismatch: $alias" }
+          }
+          if ($catalog.fallbacks.PSObject.Properties.Value -contains 'Imagens Ilustrativa/school-object-ruler-regua.png') {
+            Write-Host 'Generic ruler exists as an unrelated fallback target; checking no blue-ruler fallback alias instead.'
+          }
+          $newSha = git hash-object 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
+          $genericSha = git hash-object 'Imagens Ilustrativa/school-object-ruler-regua.png'
+          if ($newSha -eq $genericSha) { throw 'FAKE CANONICALIZATION: same blob as generic ruler' }
+          if ((git hash-object 'Imagens Ilustrativa/school-object-blue-pencil-lapis-azul.png') -ne 'aa2dfa6937415f3f1b2428f1d474983757d2b784') { throw 'blue pencil changed' }
+          if ((git hash-object 'Imagens Ilustrativa/school-object-red-pencil-lapis-vermelho.png') -ne '76224074b5b67a5e6d78dbcef7f5d4b74dc24108') { throw 'red pencil changed' }
+          if ($genericSha -ne '2276abbd4f90caf142df84062c86d770ba394399') { throw 'generic ruler changed' }
+          Write-Host "BLUE_RULER_BLOB=$newSha"
+          Write-Host "GENERIC_RULER_BLOB=$genericSha"
+          Write-Host 'BLUE_RULER_CANONICAL=PASS'
+      - name: PNG dimensions and alpha
+        run: |
+          python - <<'PY'
+          import struct
+          p='Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
+          data=open(p,'rb').read(33)
+          assert data[:8]==b'\x89PNG\r\n\x1a\n'
+          w,h=struct.unpack('>II',data[16:24])
+          assert w>0 and h>0
+          assert w>=1000 and h>=1000, (w,h)
+          print(f'BLUE_RULER_DIMENSIONS={w}x{h}')
+          PY
+      - name: Amend atomic asset commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add asset-catalog/aliases.csv asset-catalog/assets-index.json asset-catalog/catalog-build-report.json asset-catalog/runtime-index.js
+          test "$(git diff --cached --name-only | wc -l)" -ge 1
+          git commit --amend --no-edit
+          echo "BLUE_RULER_ASSET_COMMIT=$(git rev-parse HEAD)"
+          git push --force-with-lease origin HEAD:refs/heads/feat/blue-ruler-canonical-asset-20260911

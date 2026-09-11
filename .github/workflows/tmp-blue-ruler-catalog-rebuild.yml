@@ -35,8 +35,7 @@ jobs:
           ./asset-catalog/tools/Build-RuntimeIndex.ps1 -RepoRoot $PWD
       - name: Canonical self-tests
         shell: pwsh
-        run: |
-          ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot $PWD
+        run: ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot $PWD
       - name: Runtime index self-test
         run: node asset-catalog/test/runtime-index-selftest.mjs
       - name: Blue ruler gates
@@ -49,12 +48,11 @@ jobs:
           if ($catalog.stats.errors -ne 0) { throw 'errors != 0' }
           $key = 'school object blue ruler regua azul'
           $expected = 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
-          if ($catalog.byKey.$key -ne $expected) { throw "canonical key mismatch: $($catalog.byKey.$key)" }
+          $keyValue = $catalog.byKey.PSObject.Properties[$key].Value
+          if ($keyValue -ne $expected) { throw "canonical key mismatch: $keyValue" }
           foreach ($alias in @('blue ruler','ruler blue','regua azul','school object blue ruler')) {
-            if ($catalog.aliases.$alias -ne $expected) { throw "alias mismatch: $alias" }
-          }
-          if ($catalog.fallbacks.PSObject.Properties.Value -contains 'Imagens Ilustrativa/school-object-ruler-regua.png') {
-            Write-Host 'Generic ruler exists as an unrelated fallback target; checking no blue-ruler fallback alias instead.'
+            $actual = $catalog.aliases.PSObject.Properties[$alias].Value
+            if ($actual -ne $expected) { throw "alias mismatch: $alias => $actual" }
           }
           $newSha = git hash-object 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
           $genericSha = git hash-object 'Imagens Ilustrativa/school-object-ruler-regua.png'
@@ -65,7 +63,7 @@ jobs:
           Write-Host "BLUE_RULER_BLOB=$newSha"
           Write-Host "GENERIC_RULER_BLOB=$genericSha"
           Write-Host 'BLUE_RULER_CANONICAL=PASS'
-      - name: PNG dimensions and alpha
+      - name: PNG dimensions
         run: |
           python - <<'PY'
           import struct
@@ -73,7 +71,6 @@ jobs:
           data=open(p,'rb').read(33)
           assert data[:8]==b'\x89PNG\r\n\x1a\n'
           w,h=struct.unpack('>II',data[16:24])
-          assert w>0 and h>0
           assert w>=1000 and h>=1000, (w,h)
           print(f'BLUE_RULER_DIMENSIONS={w}x{h}')
           PY

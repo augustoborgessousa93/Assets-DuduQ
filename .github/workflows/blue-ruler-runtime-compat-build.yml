@@ -42,7 +42,7 @@ jobs:
             $aliases = $aliases.TrimEnd("`r", "`n") + "`n" + '"blue ruler","school-object-blue-ruler-regua-azul.png","school","Canonical blue ruler alias"' + "`n"
           }
           if ($aliases -notmatch '(?m)^"regua azul",') {
-            $aliases = $aliases.TrimEnd("`r", "`n") + '"regua azul","school-object-blue-ruler-regua-azul.png","school","Canonical Portuguese blue ruler alias"' + "`n"
+            $aliases = $aliases.TrimEnd("`r", "`n") + "`n" + '"regua azul","school-object-blue-ruler-regua-azul.png","school","Canonical Portuguese blue ruler alias"' + "`n"
           }
           [IO.File]::WriteAllText($aliasesPath, $aliases, $utf8NoBom)
 

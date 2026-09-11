@@ -24,6 +24,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $path = Join-Path $PWD 'asset-catalog/aliases.csv'
+          $target = 'school-object-blue-ruler-regua-azul.png'
+          $targetPath = Join-Path $PWD ('Imagens Ilustrativa/' + $target)
+          if (-not (Test-Path -LiteralPath $targetPath -PathType Leaf)) {
+            throw 'BLUE_RULER_TARGET_MISSING'
+          }
+
           $rows = @(Import-Csv -LiteralPath $path -Encoding UTF8)
 
           function Normalize-Key([object]$Value) {
@@ -43,32 +49,25 @@ jobs:
             return $text.Trim()
           }
 
-          $target = 'school-object-blue-ruler-regua-azul.png'
           $wanted = @(
             [pscustomobject][ordered]@{ alias='blue ruler'; target=$target; category='school'; notes='Canonical blue ruler alias' },
             [pscustomobject][ordered]@{ alias='regua azul'; target=$target; category='school'; notes='Canonical Portuguese blue ruler alias' }
           )
 
-          $byKey = @{}
-          foreach ($row in $rows) {
-            $key = Normalize-Key $row.alias
-            if ($key) { $byKey[$key] = [string]$row.target }
-          }
-
           foreach ($entry in $wanted) {
             $key = Normalize-Key $entry.alias
-            if ($byKey.ContainsKey($key)) {
-              if ([string]$byKey[$key] -ne $target) {
-                throw "Alias collision for '$($entry.alias)': $($byKey[$key])"
+            $matches = @($rows | Where-Object { (Normalize-Key $_.alias) -eq $key })
+            if ($matches.Count -gt 0) {
+              $wrong = @($matches | Where-Object { [string]$_.target -ne $target })
+              if ($wrong.Count -gt 0) {
+                throw "BLUE_RULER_ALIAS_COLLISION: $($entry.alias)"
               }
               continue
             }
             $rows += $entry
-            $byKey[$key] = $target
           }
 
           $rows | Export-Csv -LiteralPath $path -NoTypeInformation -Encoding UTF8
-          & .\asset-catalog\tools\Canonicalize-Aliases.ps1 -RepoRoot $PWD
 
       - name: Rebuild canonical catalog
         shell: powershell
@@ -118,7 +117,15 @@ jobs:
           if ([string]$asset.file -ne 'school-object-blue-ruler-regua-azul.png') { throw 'BLUE_RULER_FILE = FAIL' }
           if ([int64]$asset.sizeBytes -le 0) { throw 'BLUE_RULER_SIZE = FAIL' }
 
+          $genericRuler = $catalog.aliases.PSObject.Properties['ruler'].Value
+          $genericRegua = $catalog.aliases.PSObject.Properties['regua'].Value
+          if (-not $genericRuler -or -not $genericRegua) { throw 'GENERIC_RULER_ALIASES_MISSING' }
+          if ($genericRuler -ne $genericRegua) { throw 'GENERIC_RULER_TARGET_COHERENCE = FAIL' }
+          $genericAsset = $catalog.assets.PSObject.Properties[[string]$genericRuler].Value
+          if ([string]$genericAsset.file -ne 'school-object-ruler-regua.png') { throw 'GENERIC_RULER_TARGET_CHANGED = FAIL' }
+
           Write-Host 'BLUE_RULER_CANONICAL_ASSET = PASS' -ForegroundColor Green
+          Write-Host 'GENERIC_RULER_PRESERVED = PASS' -ForegroundColor Green
           Write-Host ("BLUE_RULER_ASSET_ID = " + [string]$aliasBlue)
           Write-Host ("BLUE_RULER_SIZE_BYTES = " + [string]$asset.sizeBytes)
 

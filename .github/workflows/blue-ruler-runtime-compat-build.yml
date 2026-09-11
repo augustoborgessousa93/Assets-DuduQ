@@ -1,0 +1,172 @@
+name: Blue Ruler Runtime Compatibility Build
+
+on:
+  push:
+    branches:
+      - hotfix/blue-ruler-runtime-compat-20260911
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout compatibility branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify approved blue ruler blob identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png')" = "ed8b6c83f7417001584d2a8b5e0fc9ea50afcb93"
+          echo "BLUE_RULER_IMAGE_IDENTITY=PASS"
+
+      - name: Configure native immutable raw source and minimal aliases
+        shell: pwsh
+        run: |
+          $settingsPath = 'asset-catalog/settings.json'
+          $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
+          $settings.branch = $env:GITHUB_SHA
+          $settings.rawBase = "https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/$env:GITHUB_SHA/"
+          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+          [IO.File]::WriteAllText($settingsPath, ($settings | ConvertTo-Json -Depth 12), $utf8NoBom)
+
+          $aliasesPath = 'asset-catalog/aliases.csv'
+          $aliases = Get-Content -LiteralPath $aliasesPath -Raw
+          if ($aliases -notmatch '(?m)^"blue ruler",') {
+            $aliases = $aliases.TrimEnd("`r", "`n") + "`n" + '"blue ruler","school-object-blue-ruler-regua-azul.png","school","Canonical blue ruler alias"' + "`n"
+          }
+          if ($aliases -notmatch '(?m)^"regua azul",') {
+            $aliases = $aliases.TrimEnd("`r", "`n") + '"regua azul","school-object-blue-ruler-regua-azul.png","school","Canonical Portuguese blue ruler alias"' + "`n"
+          }
+          [IO.File]::WriteAllText($aliasesPath, $aliases, $utf8NoBom)
+
+      - name: Test semantic collision contract
+        shell: pwsh
+        run: ./asset-catalog/tools/Test-SemanticCollisionContract.ps1 -RepoRoot "$PWD"
+
+      - name: Rebuild with pinned legacy pipeline
+        shell: pwsh
+        run: ./asset-catalog/tools/Build-AssetCatalog.ps1 -RepoRoot "$PWD"
+
+      - name: Validate canonical catalog integrity
+        shell: pwsh
+        run: ./asset-catalog/tools/Validate-AssetCatalog.ps1 -RepoRoot "$PWD"
+
+      - name: Guard legacy Core semantic compatibility
+        shell: pwsh
+        run: ./asset-catalog/tools/Test-Core109AliasCompatibility.ps1 -RepoRoot "$PWD"
+
+      - name: Generate synchronous runtime index
+        shell: pwsh
+        run: ./asset-catalog/tools/Build-RuntimeIndex.ps1 -RepoRoot "$PWD"
+
+      - name: Verify runtime index parity
+        shell: pwsh
+        run: ./asset-catalog/tools/Test-RuntimeIndexParity.ps1 -RepoRoot "$PWD"
+
+      - name: Run smart assets self-test
+        shell: pwsh
+        run: ./asset-catalog/tools/SelfTest-SmartAssets.ps1 -RepoRoot "$PWD"
+
+      - name: Verify resolver contract and legacy sentinels
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check asset-catalog/runtime-index.js
+          node - <<'NODE'
+          require('./asset-catalog/runtime-index.js');
+          const c = globalThis.DUDUQ_CANONICAL_ASSET_CATALOG;
+          if (!c || c.schemaVersion !== 2) throw new Error('schema 2 missing');
+          if (c.stats.images !== 238) throw new Error(`images=${c.stats.images}`);
+          if (c.stats.uniqueKeys !== 237) throw new Error(`uniqueKeys=${c.stats.uniqueKeys}`);
+          if (c.stats.aliases !== 238) throw new Error(`aliases=${c.stats.aliases}`);
+          if (c.stats.unresolvedCollisions !== 0 || c.stats.warnings !== 0 || c.stats.errors !== 0) throw new Error('catalog integrity counters not clean');
+          const blue = 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png';
+          const generic = 'Imagens Ilustrativa/Régua.png';
+          if (c.aliases['blue ruler'] !== blue) throw new Error('blue ruler alias');
+          if (c.aliases['regua azul'] !== blue) throw new Error('regua azul alias');
+          if (c.aliases['ruler'] !== generic) throw new Error(`generic ruler changed: ${c.aliases['ruler']}`);
+          const sentinels = ['blue pencil','red pencil','ruler','cat','dog','one','blue','hello'];
+          for (const key of sentinels) {
+            if (!c.aliases[key] && !c.byKey[key]) throw new Error(`legacy sentinel missing: ${key}`);
+          }
+          console.log(JSON.stringify({
+            BLUE_RULER_RESOLVER:'PASS',
+            GENERIC_RULER_REGRESSION:'PASS',
+            LEGACY_ASSET_SENTINELS:'PASS',
+            stats:c.stats,
+            blueRuler:c.aliases['blue ruler'],
+            reguaAzul:c.aliases['regua azul'],
+            ruler:c.aliases['ruler'],
+            rawBase:c.rawBase
+          }, null, 2));
+          NODE
+
+      - name: Verify immutable physical load and PNG dimensions
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://raw.githubusercontent.com/augustoborgessousa93/Assets-DuduQ/${GITHUB_SHA}/Imagens%20Ilustrativa/school-object-blue-ruler-regua-azul.png"
+          CODE="$(curl -L -sS -o /tmp/blue-ruler.png -w '%{http_code}' "$URL")"
+          test "$CODE" = "200"
+          cmp -s /tmp/blue-ruler.png 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
+          python3 - <<'PY'
+          import struct
+          p='/tmp/blue-ruler.png'
+          data=open(p,'rb').read(24)
+          if data[:8] != b'\x89PNG\r\n\x1a\n' or data[12:16] != b'IHDR':
+              raise SystemExit('invalid PNG')
+          w,h=struct.unpack('>II',data[16:24])
+          if w <= 0 or h <= 0:
+              raise SystemExit('invalid dimensions')
+          print(f'BLUE_RULER_PHYSICAL_LOAD=PASS HTTP=200 naturalWidth={w} naturalHeight={h}')
+          PY
+
+      - name: Delta gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import subprocess
+          base='f0f8bed8e8c24fad4eae204bf4a5cc84a8d8263f'
+          names=subprocess.check_output(['git','diff','--name-status',base,'--'], text=True).splitlines()
+          allowed={
+            'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png',
+            'asset-catalog/aliases.csv',
+            'asset-catalog/settings.json',
+            'asset-catalog/assets-index.json',
+            'asset-catalog/runtime-index.js',
+            'asset-catalog/catalog-build-report.json',
+            '.github/workflows/blue-ruler-runtime-compat-build.yml',
+          }
+          for line in names:
+              parts=line.split('\t')
+              status=parts[0]
+              paths=parts[1:]
+              if status.startswith('R') or status.startswith('C'):
+                  raise SystemExit(f'unexpected rename/copy: {line}')
+              for path in paths:
+                  if path not in allowed:
+                      raise SystemExit(f'unrelated delta: {line}')
+              if status == 'D':
+                  raise SystemExit(f'unexpected deletion: {line}')
+          print('BLUE_RULER_DELTA_GATE=PASS')
+          print('\n'.join(names))
+          PY
+
+      - name: Commit compatibility catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "duduq-catalog-bot"
+          git config user.email "duduq-catalog-bot@users.noreply.github.com"
+          git add asset-catalog/aliases.csv asset-catalog/settings.json asset-catalog/assets-index.json asset-catalog/runtime-index.js asset-catalog/catalog-build-report.json
+          git diff --cached --quiet && { echo 'No generated changes to commit'; exit 1; }
+          git commit -m "fix(assets): add blue ruler to canary runtime catalog"
+          git push

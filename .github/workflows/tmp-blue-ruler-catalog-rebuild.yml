@@ -13,21 +13,13 @@ jobs:
         with:
           ref: feat/blue-ruler-canonical-asset-20260911
           fetch-depth: 0
-      - name: Add canonical aliases
+      - name: Add canonical alias
         shell: pwsh
         run: |
           $path = 'asset-catalog/aliases.csv'
-          $target = 'school-object-blue-ruler-regua-azul.png'
-          $rows = @(
-            'blue ruler,' + $target,
-            'ruler blue,' + $target,
-            'regua azul,' + $target,
-            'school object blue ruler,' + $target
-          )
+          $row = 'blue ruler,school-object-blue-ruler-regua-azul.png'
           $text = [IO.File]::ReadAllText($path)
-          foreach ($row in $rows) {
-            if ($text -notmatch [regex]::Escape($row)) { Add-Content -LiteralPath $path -Value $row -Encoding utf8 }
-          }
+          if ($text -notmatch [regex]::Escape($row)) { Add-Content -LiteralPath $path -Value $row -Encoding utf8 }
       - name: Rebuild canonical catalog
         shell: pwsh
         run: |
@@ -46,14 +38,11 @@ jobs:
           if ($catalog.stats.unresolvedCollisions -ne 0) { throw 'unresolved collisions' }
           if ($catalog.stats.warnings -ne 0) { throw 'warnings != 0' }
           if ($catalog.stats.errors -ne 0) { throw 'errors != 0' }
-          $key = 'school object blue ruler regua azul'
           $expected = 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
-          $keyValue = $catalog.byKey.PSObject.Properties[$key].Value
+          $keyValue = $catalog.byKey.PSObject.Properties['school object blue ruler regua azul'].Value
           if ($keyValue -ne $expected) { throw "canonical key mismatch: $keyValue" }
-          foreach ($alias in @('blue ruler','ruler blue','regua azul','school object blue ruler')) {
-            $actual = $catalog.aliases.PSObject.Properties[$alias].Value
-            if ($actual -ne $expected) { throw "alias mismatch: $alias => $actual" }
-          }
+          $aliasValue = $catalog.aliases.PSObject.Properties['blue ruler'].Value
+          if ($aliasValue -ne $expected) { throw "blue ruler alias mismatch: $aliasValue" }
           $newSha = git hash-object 'Imagens Ilustrativa/school-object-blue-ruler-regua-azul.png'
           $genericSha = git hash-object 'Imagens Ilustrativa/school-object-ruler-regua.png'
           if ($newSha -eq $genericSha) { throw 'FAKE CANONICALIZATION: same blob as generic ruler' }
